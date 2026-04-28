@@ -1,6 +1,9 @@
+import { readFile } from "node:fs/promises";
 import { DefaultInvariantRunner } from "@concord/invariants";
 import { DefaultScenarioRunner } from "@concord/scenario";
+import { createSQLiteConcord } from "@concord/sdk";
 import { DefaultTraceReplayer, DefaultTraceVerifier, loadTrace } from "@concord/trace";
+import { parse as parseYaml } from "yaml";
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -15,6 +18,16 @@ try {
     await verifyTrace(args.slice(2));
   } else if (command === "trace" && subcommand === "replay") {
     await replayTrace(args.slice(2));
+  } else if (command === "project") {
+    await handleProject(subcommand, args.slice(2));
+  } else if (command === "objective") {
+    await handleObjective(subcommand, args.slice(2));
+  } else if (command === "boundary") {
+    await handleBoundary(subcommand, args.slice(2));
+  } else if (command === "principal") {
+    await handlePrincipal(subcommand, args.slice(2));
+  } else if (command === "agent") {
+    await handleAgent(subcommand, args.slice(2));
   } else {
     usage(2);
   }
@@ -22,6 +35,10 @@ try {
   console.error((error as Error).message);
   process.exit(2);
 }
+
+// ---------------------------------------------------------------------------
+// Scenario / Trace commands (unchanged)
+// ---------------------------------------------------------------------------
 
 async function runScenario(args: string[], traceRun: boolean): Promise<void> {
   const scenarioPath = args[0];
@@ -102,6 +119,337 @@ async function replayTrace(args: string[]): Promise<void> {
   process.exit(result.ok ? 0 : 1);
 }
 
+// ---------------------------------------------------------------------------
+// M9: project commands
+// ---------------------------------------------------------------------------
+
+async function handleProject(sub: string | undefined, args: string[]): Promise<void> {
+  const opts = parseOptions(args);
+  const db = getDb(opts);
+  const sdk = createSQLiteConcord(db);
+
+  if (sub === "create") {
+    const filePath = requireOpt(opts, "file", "project create");
+    const yaml = parseYaml(await readFile(userPath(filePath), "utf8")) as Record<string, unknown>;
+    const project = await sdk.projects.createProject({
+      slug: requireField(yaml, "slug"),
+      name: requireField(yaml, "name"),
+      ...(yaml.description ? { description: String(yaml.description) } : {}),
+      sponsorPrincipalId: requireField(yaml, "sponsor") as never,
+      boundary: { createdBy: requireField(yaml, "sponsor") as never, ...(yaml.boundary as object ?? {}) },
+    });
+    printProject(project);
+
+  } else if (sub === "list") {
+    const projects = await sdk.projects.listProjects();
+    if (projects.length === 0) { console.log("No projects."); return; }
+    for (const p of projects) printProject(p);
+
+  } else if (sub === "inspect") {
+    const idOrSlug = args[0];
+    if (!idOrSlug) usage(2);
+    const project = await sdk.projects.getProject(idOrSlug as never) ?? await sdk.projects.getProjectBySlug(idOrSlug);
+    if (!project) { console.error(`Project not found: ${idOrSlug}`); process.exit(1); }
+    console.log(JSON.stringify(project, null, 2));
+
+  } else if (sub === "activate") {
+    const idOrSlug = requirePositional(args, 0, "project activate");
+    const project = await resolveProject(sdk, idOrSlug);
+    const actor = requireOpt(opts, "actor", "project activate");
+    const updated = await sdk.projects.activateProject({ projectId: project.id, actorId: actor as never });
+    printProject(updated);
+
+  } else if (sub === "pause") {
+    const idOrSlug = requirePositional(args, 0, "project pause");
+    const project = await resolveProject(sdk, idOrSlug);
+    const actor = requireOpt(opts, "actor", "project pause");
+    const reason = requireOpt(opts, "reason", "project pause");
+    const updated = await sdk.projects.pauseProject({ projectId: project.id, actorId: actor as never, reason });
+    printProject(updated);
+
+  } else if (sub === "archive") {
+    const idOrSlug = requirePositional(args, 0, "project archive");
+    const project = await resolveProject(sdk, idOrSlug);
+    const actor = requireOpt(opts, "actor", "project archive");
+    const reason = requireOpt(opts, "reason", "project archive");
+    const updated = await sdk.projects.archiveProject({ projectId: project.id, actorId: actor as never, reason });
+    printProject(updated);
+
+  } else if (sub === "add-member") {
+    const projectIdOrSlug = requireOpt(opts, "project", "project add-member");
+    const project = await resolveProject(sdk, projectIdOrSlug);
+    const principalId = requireOpt(opts, "principal", "project add-member");
+    const agentId = typeof opts.agent === "string" ? opts.agent : undefined;
+    const roles = requireOpt(opts, "roles", "project add-member").split(",");
+    const membership = await sdk.agents.addProjectMember({
+      projectId: project.id,
+      principalId: principalId as never,
+      ...(agentId ? { agentId: agentId as never } : {}),
+      roles: roles as never,
+      source: "manual",
+    });
+    console.log(`Membership: ${membership.id} | principal:${membership.principalId} | roles:${membership.roles.join(",")}`);
+
+  } else {
+    usage(2);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// M9: objective commands
+// ---------------------------------------------------------------------------
+
+async function handleObjective(sub: string | undefined, args: string[]): Promise<void> {
+  const opts = parseOptions(args);
+  const db = getDb(opts);
+  const sdk = createSQLiteConcord(db);
+
+  if (sub === "create") {
+    const projectIdOrSlug = requireOpt(opts, "project", "objective create");
+    const project = await resolveProject(sdk, projectIdOrSlug);
+    const filePath = requireOpt(opts, "file", "objective create");
+    const yaml = parseYaml(await readFile(userPath(filePath), "utf8")) as Record<string, unknown>;
+    const actor = typeof opts.actor === "string" ? opts.actor : project.sponsorPrincipalId;
+    const objective = await sdk.objectives.createObjective({
+      projectId: project.id,
+      title: requireField(yaml, "title"),
+      description: requireField(yaml, "description"),
+      kind: requireField(yaml, "kind") as never,
+      successCriteria: (yaml.successCriteria as never[]) ?? [],
+      ...(yaml.forbiddenOutcomes ? { forbiddenOutcomes: yaml.forbiddenOutcomes as string[] } : {}),
+      ...(yaml.priority !== undefined ? { priority: Number(yaml.priority) } : {}),
+      createdBy: actor as never,
+    });
+    console.log(`Objective: ${objective.id} | ${objective.title} | ${objective.status}`);
+
+  } else if (sub === "list") {
+    const projectIdOrSlug = requireOpt(opts, "project", "objective list");
+    const project = await resolveProject(sdk, projectIdOrSlug);
+    const objectives = await sdk.objectives.listObjectives(project.id);
+    if (objectives.length === 0) { console.log("No objectives."); return; }
+    for (const o of objectives) console.log(`${o.id} | ${o.kind} | ${o.status} | ${o.title}`);
+
+  } else if (sub === "activate") {
+    const objectiveId = requirePositional(args, 0, "objective activate");
+    const actor = requireOpt(opts, "actor", "objective activate");
+    const updated = await sdk.objectives.activateObjective({ objectiveId: objectiveId as never, actorId: actor as never });
+    console.log(`Objective: ${updated.id} | ${updated.status}`);
+
+  } else if (sub === "set-primary") {
+    const projectIdOrSlug = requireOpt(opts, "project", "objective set-primary");
+    const project = await resolveProject(sdk, projectIdOrSlug);
+    const objectiveId = requireOpt(opts, "objective", "objective set-primary");
+    const actor = requireOpt(opts, "actor", "objective set-primary");
+    const updated = await sdk.objectives.setPrimaryObjective({
+      projectId: project.id,
+      objectiveId: objectiveId as never,
+      actorId: actor as never,
+    });
+    console.log(`Project: ${updated.id} | primaryObjective: ${updated.primaryObjectiveId ?? "none"}`);
+
+  } else if (sub === "close") {
+    const objectiveId = requirePositional(args, 0, "objective close");
+    const actor = requireOpt(opts, "actor", "objective close");
+    const status = requireOpt(opts, "status", "objective close");
+    const reason = requireOpt(opts, "reason", "objective close");
+    const updated = await sdk.objectives.closeObjective({
+      objectiveId: objectiveId as never,
+      actorId: actor as never,
+      status: status as never,
+      reason,
+    });
+    console.log(`Objective: ${updated.id} | ${updated.status}`);
+
+  } else {
+    usage(2);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// M9: boundary commands
+// ---------------------------------------------------------------------------
+
+async function handleBoundary(sub: string | undefined, args: string[]): Promise<void> {
+  const opts = parseOptions(args);
+  const db = getDb(opts);
+  const sdk = createSQLiteConcord(db);
+
+  if (sub === "inspect") {
+    const projectIdOrSlug = requireOpt(opts, "project", "boundary inspect");
+    const project = await resolveProject(sdk, projectIdOrSlug);
+    const boundary = await sdk.boundaries.getActiveBoundary(project.id);
+    if (!boundary) { console.log("No active boundary."); return; }
+    console.log(JSON.stringify(boundary, null, 2));
+
+  } else if (sub === "evaluate") {
+    const projectIdOrSlug = requireOpt(opts, "project", "boundary evaluate");
+    const project = await resolveProject(sdk, projectIdOrSlug);
+    const actionType = requireOpt(opts, "action-type", "boundary evaluate");
+    const actor = typeof opts.actor === "string" ? opts.actor : undefined;
+    const result = await sdk.boundaries.evaluateAction({
+      projectId: project.id,
+      actionType,
+      ...(actor ? { actor: actor as never } : {}),
+    });
+    console.log(`ActionType: ${actionType}`);
+    console.log(`Allowed: ${result.allowed}`);
+    console.log(`RiskLevel: ${result.riskLevel}`);
+    if (result.requiredFlow) console.log(`RequiredFlow: ${result.requiredFlow}`);
+    if (result.reasons.length) console.log(`Reasons: ${result.reasons.join("; ")}`);
+
+  } else if (sub === "revise") {
+    const projectIdOrSlug = requireOpt(opts, "project", "boundary revise");
+    const project = await resolveProject(sdk, projectIdOrSlug);
+    const actor = requireOpt(opts, "actor", "boundary revise");
+    const reason = requireOpt(opts, "reason", "boundary revise");
+    const filePath = requireOpt(opts, "file", "boundary revise");
+    const yaml = parseYaml(await readFile(userPath(filePath), "utf8")) as Record<string, unknown>;
+    const currentBoundary = await sdk.boundaries.getActiveBoundary(project.id);
+    if (!currentBoundary) { console.error("No active boundary to revise."); process.exit(1); }
+    const boundary = await sdk.boundaries.reviseBoundary({
+      projectId: project.id,
+      previousBoundaryId: currentBoundary.id,
+      actorId: actor as never,
+      reason,
+      nextBoundary: {
+        defaultRiskLevel: (yaml.defaultRiskLevel as never) ?? currentBoundary.defaultRiskLevel,
+        prohibitedActions: (yaml.prohibitedActions as never) ?? currentBoundary.prohibitedActions,
+        riskRules: (yaml.riskRules as never) ?? currentBoundary.riskRules,
+        escalationRules: (yaml.escalationRules as never) ?? currentBoundary.escalationRules,
+      },
+    });
+    console.log(`Boundary: ${boundary.id} | status: ${boundary.status}`);
+
+  } else {
+    usage(2);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// M9: principal commands
+// ---------------------------------------------------------------------------
+
+async function handlePrincipal(sub: string | undefined, args: string[]): Promise<void> {
+  const opts = parseOptions(args);
+  const db = getDb(opts);
+  const sdk = createSQLiteConcord(db);
+
+  if (sub === "register") {
+    const filePath = requireOpt(opts, "file", "principal register");
+    const yaml = parseYaml(await readFile(userPath(filePath), "utf8")) as Record<string, unknown>;
+    const principal = await sdk.principals.registerPrincipal({
+      kind: requireField(yaml, "kind") as never,
+      displayName: requireField(yaml, "displayName"),
+      ...(yaml.description ? { description: String(yaml.description) } : {}),
+      identityBindings: (yaml.identities as Array<{ namespace: string; subject: string }>)?.map((i) => ({ namespace: i.namespace, subject: i.subject })) ?? [],
+    });
+    console.log(`Principal: ${principal.id} | ${principal.kind} | ${principal.displayName}`);
+
+  } else if (sub === "list") {
+    const principals = await sdk.principals.listPrincipals();
+    if (principals.length === 0) { console.log("No principals."); return; }
+    for (const p of principals) console.log(`${p.id} | ${p.kind} | ${p.status} | ${p.displayName}`);
+
+  } else if (sub === "inspect") {
+    const principalId = requirePositional(args, 0, "principal inspect");
+    const principal = await sdk.principals.getPrincipal(principalId as never);
+    if (!principal) { console.error(`Principal not found: ${principalId}`); process.exit(1); }
+    console.log(JSON.stringify(principal, null, 2));
+
+  } else {
+    usage(2);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// M9: agent commands
+// ---------------------------------------------------------------------------
+
+async function handleAgent(sub: string | undefined, args: string[]): Promise<void> {
+  const opts = parseOptions(args);
+  const db = getDb(opts);
+  const sdk = createSQLiteConcord(db);
+
+  if (sub === "register") {
+    const filePath = requireOpt(opts, "file", "agent register");
+    const yaml = parseYaml(await readFile(userPath(filePath), "utf8")) as Record<string, unknown>;
+    const agent = await sdk.agents.registerAgent({
+      principalId: requireField(yaml, "principal") as never,
+      displayName: requireField(yaml, "displayName"),
+      ...(yaml.description ? { description: String(yaml.description) } : {}),
+      capabilities: (yaml.capabilities as Array<{ name: string; tags?: string[] }>)?.map((c) => ({ name: c.name, ...(c.tags ? { tags: c.tags } : {}) })) ?? [],
+      eligibleRoles: (yaml.eligibleRoles as never[]) ?? [],
+    });
+    console.log(`Agent: ${agent.id} | ${agent.displayName} | principal:${agent.principalId}`);
+
+  } else if (sub === "list") {
+    const agents = await sdk.agents.listAgents();
+    if (agents.length === 0) { console.log("No agents."); return; }
+    for (const a of agents) console.log(`${a.id} | ${a.status} | ${a.displayName} | principal:${a.principalId}`);
+
+  } else if (sub === "inspect") {
+    const agentId = requirePositional(args, 0, "agent inspect");
+    const agent = await sdk.agents.getAgent(agentId as never);
+    if (!agent) { console.error(`Agent not found: ${agentId}`); process.exit(1); }
+    console.log(JSON.stringify(agent, null, 2));
+
+  } else if (sub === "bind-runtime") {
+    const agentId = requireOpt(opts, "agent", "agent bind-runtime");
+    const filePath = requireOpt(opts, "file", "agent bind-runtime");
+    const yaml = parseYaml(await readFile(userPath(filePath), "utf8")) as Record<string, unknown>;
+    const binding = await sdk.agents.createRuntimeBinding({
+      agentId: agentId as never,
+      runtimeKind: requireField(yaml, "kind") as never,
+      runtimeAdapterId: requireField(yaml, "adapterId"),
+      ...(yaml.endpoint ? { endpoint: yaml.endpoint as never } : {}),
+    });
+    console.log(`RuntimeBinding: ${binding.id} | agent:${binding.agentId} | kind:${binding.runtimeKind}`);
+
+  } else {
+    usage(2);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function getDb(opts: Record<string, string | boolean>): string {
+  const dbOpt = opts.db;
+  if (typeof dbOpt === "string") return userPath(dbOpt);
+  const envDb = process.env["CONCORD_DB"];
+  return envDb ? userPath(envDb) : userPath("concord.db");
+}
+
+async function resolveProject(sdk: ReturnType<typeof createSQLiteConcord>, idOrSlug: string) {
+  const project = await sdk.projects.getProject(idOrSlug as never) ?? await sdk.projects.getProjectBySlug(idOrSlug);
+  if (!project) { console.error(`Project not found: ${idOrSlug}`); process.exit(1); }
+  return project;
+}
+
+function printProject(project: { id: string; slug: string; status: string; name: string; primaryObjectiveId?: string | null }): void {
+  console.log(`Project: ${project.id} | ${project.slug} | ${project.status} | ${project.name}`);
+  if (project.primaryObjectiveId) console.log(`  primaryObjective: ${project.primaryObjectiveId}`);
+}
+
+function requirePositional(args: string[], index: number, cmd: string): string {
+  const val = args[index];
+  if (!val || val.startsWith("--")) { console.error(`${cmd}: missing positional argument`); usage(2); }
+  return val;
+}
+
+function requireOpt(opts: Record<string, string | boolean>, key: string, cmd: string): string {
+  const val = opts[key];
+  if (typeof val !== "string") { console.error(`${cmd}: --${key} is required`); usage(2); }
+  return val;
+}
+
+function requireField(yaml: Record<string, unknown>, key: string): string {
+  const val = yaml[key];
+  if (!val) throw new Error(`YAML field '${key}' is required`);
+  return String(val);
+}
+
 function parseOptions(args: string[]): Record<string, string | boolean> {
   const options: Record<string, string | boolean> = {};
   for (let index = 0; index < args.length; index += 1) {
@@ -137,9 +485,37 @@ function userPath(path: string): string {
 }
 
 function usage(code: number): never {
-  console.error("Usage: concord scenario run <scenario.yaml> [--trace-out path] [--verify] [--replay]");
-  console.error("       concord trace verify <trace.json> [--strict] [--json] [--skip id]");
-  console.error("       concord trace replay <trace.json> [--store memory|sqlite] [--sqlite-path path] [--stop-after n]");
-  console.error("       concord trace run <scenario.yaml>");
+  console.error("Usage:");
+  console.error("  concord scenario run <scenario.yaml> [--trace-out path] [--verify] [--replay]");
+  console.error("  concord trace verify <trace.json> [--strict] [--json] [--skip id]");
+  console.error("  concord trace replay <trace.json> [--store memory|sqlite] [--sqlite-path path] [--stop-after n]");
+  console.error("  concord trace run <scenario.yaml>");
+  console.error("");
+  console.error("  concord project create --file project.yaml [--db path]");
+  console.error("  concord project list [--db path]");
+  console.error("  concord project inspect <projectIdOrSlug> [--db path]");
+  console.error("  concord project activate <projectIdOrSlug> --actor <principalId> [--db path]");
+  console.error("  concord project pause <projectIdOrSlug> --actor <principalId> --reason '...' [--db path]");
+  console.error("  concord project archive <projectIdOrSlug> --actor <principalId> --reason '...' [--db path]");
+  console.error("  concord project add-member --project <id> --principal <id> [--agent <id>] --roles role1,role2 [--db path]");
+  console.error("");
+  console.error("  concord objective create --project <id> --file objective.yaml [--actor <principalId>] [--db path]");
+  console.error("  concord objective list --project <id> [--db path]");
+  console.error("  concord objective activate <objectiveId> --actor <principalId> [--db path]");
+  console.error("  concord objective set-primary --project <id> --objective <id> --actor <principalId> [--db path]");
+  console.error("  concord objective close <objectiveId> --actor <principalId> --status succeeded --reason '...' [--db path]");
+  console.error("");
+  console.error("  concord boundary inspect --project <id> [--db path]");
+  console.error("  concord boundary evaluate --project <id> --action-type <type> [--actor <principalId>] [--db path]");
+  console.error("  concord boundary revise --project <id> --file boundary.yaml --actor <principalId> --reason '...' [--db path]");
+  console.error("");
+  console.error("  concord principal register --file principal.yaml [--db path]");
+  console.error("  concord principal list [--db path]");
+  console.error("  concord principal inspect <principalId> [--db path]");
+  console.error("");
+  console.error("  concord agent register --file agent.yaml [--db path]");
+  console.error("  concord agent list [--db path]");
+  console.error("  concord agent inspect <agentId> [--db path]");
+  console.error("  concord agent bind-runtime --agent <agentId> --file runtime.yaml [--db path]");
   process.exit(code);
 }

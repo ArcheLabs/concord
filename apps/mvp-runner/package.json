@@ -12,9 +12,11 @@
   },
   "dependencies": {
     "@concord/invariants": "workspace:*",
+    "@concord/project": "workspace:*",
     "@concord/scenario": "workspace:*",
     "@concord/sdk": "workspace:*",
-    "@concord/trace": "workspace:*"
+    "@concord/trace": "workspace:*",
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
