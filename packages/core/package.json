@@ -1,5 +1,5 @@
 {
-  "name": "@ascf/core",
+  "name": "@concord/core",
   "version": "0.1.0",
   "type": "module",
   "exports": {
@@ -11,7 +11,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@ascf/foundation": "workspace:*",
+    "@concord/foundation": "workspace:*",
     "zod": "^3.24.3"
   },
   "devDependencies": {

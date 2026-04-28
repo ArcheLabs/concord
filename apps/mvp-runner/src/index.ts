@@ -1,6 +1,6 @@
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { createASCF, createSQLiteASCF, ScriptRuntimeAdapter } from "@ascf/sdk";
+import { createConcord, createSQLiteConcord, ScriptRuntimeAdapter } from "@concord/sdk";
 
 interface CliOptions {
   db?: string;
@@ -15,8 +15,8 @@ if (options.db) {
 const config = options.runtimeScript
   ? { runtimes: [new ScriptRuntimeAdapter(process.execPath, [resolve(options.runtimeScript)])] }
   : {};
-const ascf = options.db ? createSQLiteASCF(resolve(options.db), config) : createASCF(config);
-const result = await ascf.loop.runOnce();
+const concord = options.db ? createSQLiteConcord(resolve(options.db), config) : createConcord(config);
+const result = await concord.loop.runOnce();
 
 console.log(
   JSON.stringify(

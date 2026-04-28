@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { makeId, nowTimestamp, version } from "@ascf/foundation";
+import { makeId, nowTimestamp, version } from "@concord/foundation";
 import { MemoryKnowledgeStore, SQLiteKnowledgeStore } from "./index.js";
-import type { ContextReceipt, KnowledgeCandidate, KnowledgeStore } from "@ascf/core";
+import type { ContextReceipt, KnowledgeCandidate, KnowledgeStore } from "@concord/core";
 
 describe("knowledge stores", () => {
   it("commits candidate knowledge into a new memory version", async () => {

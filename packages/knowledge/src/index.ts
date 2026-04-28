@@ -9,7 +9,7 @@ import type {
   KnowledgeScope,
   KnowledgeStore,
   KnowledgeVersion,
-} from "@ascf/core";
+} from "@concord/core";
 import {
   type ActorId,
   type KnowledgeCandidateId,
@@ -17,7 +17,7 @@ import {
   makeId,
   nowTimestamp,
   sha256,
-} from "@ascf/foundation";
+} from "@concord/foundation";
 
 export class MemoryKnowledgeStore implements KnowledgeStore {
   private readonly versions = new Map<KnowledgeVersionId, KnowledgeVersion>();
@@ -28,7 +28,7 @@ export class MemoryKnowledgeStore implements KnowledgeStore {
   async seedInitialVersion(input: { id?: KnowledgeVersionId; createdBy: ActorId; seed?: unknown }): Promise<KnowledgeVersion> {
     const version: KnowledgeVersion = {
       id: input.id ?? makeId("KnowledgeVersionId"),
-      hash: sha256({ seed: input.seed ?? "ascf-bootstrap" }),
+      hash: sha256({ seed: input.seed ?? "concord-bootstrap" }),
       createdAt: nowTimestamp(),
       createdBy: input.createdBy,
       commitIds: [],
@@ -160,7 +160,7 @@ export class SQLiteKnowledgeStore implements KnowledgeStore {
     }
     const version: KnowledgeVersion = {
       id: input.id ?? makeId("KnowledgeVersionId"),
-      hash: sha256({ seed: input.seed ?? "ascf-bootstrap" }),
+      hash: sha256({ seed: input.seed ?? "concord-bootstrap" }),
       createdAt: nowTimestamp(),
       createdBy: input.createdBy,
       commitIds: [],

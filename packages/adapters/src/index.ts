@@ -13,7 +13,7 @@ import type {
   RoleAssignment,
   RuntimeExecutionResult,
   WorkOrder,
-} from "@ascf/core";
+} from "@concord/core";
 import {
   createEvent,
   type ActorId,
@@ -21,10 +21,10 @@ import {
   makeId,
   nowTimestamp,
   sha256,
-} from "@ascf/foundation";
+} from "@concord/foundation";
 
-export { MemoryKnowledgeStore, SQLiteKnowledgeStore } from "@ascf/knowledge";
-export { createStateView, MemoryEventStore, MemoryProjectionStore, SQLiteEventStore, SQLiteProjectionStore } from "@ascf/state";
+export { MemoryKnowledgeStore, SQLiteKnowledgeStore } from "@concord/knowledge";
+export { createStateView, MemoryEventStore, MemoryProjectionStore, SQLiteEventStore, SQLiteProjectionStore } from "@concord/state";
 
 export class MockRuntimeAdapter implements AgentRuntimeAdapter {
   readonly id = "mock-runtime";

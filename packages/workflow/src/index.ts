@@ -12,8 +12,8 @@ import type {
   Submission,
   WorkClaim,
   WorkOrder,
-} from "@ascf/core";
-import { createEvent, type ActorId, type WorkOrderId, makeId, nowTimestamp } from "@ascf/foundation";
+} from "@concord/core";
+import { createEvent, type ActorId, type WorkOrderId, makeId, nowTimestamp } from "@concord/foundation";
 
 export class InMemoryWorkService {
   private readonly workOrders = new Map<WorkOrderId, WorkOrder>();

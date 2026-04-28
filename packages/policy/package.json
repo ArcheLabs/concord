@@ -1,5 +1,5 @@
 {
-  "name": "@ascf/policy",
+  "name": "@concord/policy",
   "version": "0.1.0",
   "type": "module",
   "exports": {
@@ -11,11 +11,11 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@ascf/core": "workspace:*",
-    "@ascf/foundation": "workspace:*"
+    "@concord/core": "workspace:*",
+    "@concord/foundation": "workspace:*"
   },
   "devDependencies": {
-    "@ascf/state": "workspace:*",
+    "@concord/state": "workspace:*",
     "@types/node": "^22.15.3",
     "typescript": "^5.8.3",
     "vitest": "^3.1.2"

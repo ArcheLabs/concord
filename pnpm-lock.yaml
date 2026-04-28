@@ -23,7 +23,7 @@ importers:
 
   apps/coordinator-api:
     dependencies:
-      '@ascf/sdk':
+      '@concord/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
       fastify:
@@ -45,7 +45,7 @@ importers:
 
   apps/mvp-runner:
     dependencies:
-      '@ascf/sdk':
+      '@concord/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
     devDependencies:
@@ -64,16 +64,16 @@ importers:
 
   packages/adapters:
     dependencies:
-      '@ascf/core':
+      '@concord/core':
         specifier: workspace:*
         version: link:../core
-      '@ascf/foundation':
+      '@concord/foundation':
         specifier: workspace:*
         version: link:../foundation
-      '@ascf/knowledge':
+      '@concord/knowledge':
         specifier: workspace:*
         version: link:../knowledge
-      '@ascf/state':
+      '@concord/state':
         specifier: workspace:*
         version: link:../state
     devDependencies:
@@ -89,7 +89,7 @@ importers:
 
   packages/core:
     dependencies:
-      '@ascf/foundation':
+      '@concord/foundation':
         specifier: workspace:*
         version: link:../foundation
       zod:
@@ -120,10 +120,10 @@ importers:
 
   packages/knowledge:
     dependencies:
-      '@ascf/core':
+      '@concord/core':
         specifier: workspace:*
         version: link:../core
-      '@ascf/foundation':
+      '@concord/foundation':
         specifier: workspace:*
         version: link:../foundation
     devDependencies:
@@ -139,10 +139,10 @@ importers:
 
   packages/negotiation:
     dependencies:
-      '@ascf/core':
+      '@concord/core':
         specifier: workspace:*
         version: link:../core
-      '@ascf/foundation':
+      '@concord/foundation':
         specifier: workspace:*
         version: link:../foundation
     devDependencies:
@@ -158,14 +158,14 @@ importers:
 
   packages/policy:
     dependencies:
-      '@ascf/core':
+      '@concord/core':
         specifier: workspace:*
         version: link:../core
-      '@ascf/foundation':
+      '@concord/foundation':
         specifier: workspace:*
         version: link:../foundation
     devDependencies:
-      '@ascf/state':
+      '@concord/state':
         specifier: workspace:*
         version: link:../state
       '@types/node':
@@ -180,28 +180,28 @@ importers:
 
   packages/sdk:
     dependencies:
-      '@ascf/adapters':
+      '@concord/adapters':
         specifier: workspace:*
         version: link:../adapters
-      '@ascf/core':
+      '@concord/core':
         specifier: workspace:*
         version: link:../core
-      '@ascf/foundation':
+      '@concord/foundation':
         specifier: workspace:*
         version: link:../foundation
-      '@ascf/knowledge':
+      '@concord/knowledge':
         specifier: workspace:*
         version: link:../knowledge
-      '@ascf/negotiation':
+      '@concord/negotiation':
         specifier: workspace:*
         version: link:../negotiation
-      '@ascf/policy':
+      '@concord/policy':
         specifier: workspace:*
         version: link:../policy
-      '@ascf/state':
+      '@concord/state':
         specifier: workspace:*
         version: link:../state
-      '@ascf/workflow':
+      '@concord/workflow':
         specifier: workspace:*
         version: link:../workflow
     devDependencies:
@@ -217,10 +217,10 @@ importers:
 
   packages/state:
     dependencies:
-      '@ascf/core':
+      '@concord/core':
         specifier: workspace:*
         version: link:../core
-      '@ascf/foundation':
+      '@concord/foundation':
         specifier: workspace:*
         version: link:../foundation
     devDependencies:
@@ -236,10 +236,10 @@ importers:
 
   packages/workflow:
     dependencies:
-      '@ascf/core':
+      '@concord/core':
         specifier: workspace:*
         version: link:../core
-      '@ascf/foundation':
+      '@concord/foundation':
         specifier: workspace:*
         version: link:../foundation
     devDependencies:

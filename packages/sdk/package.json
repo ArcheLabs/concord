@@ -1,5 +1,5 @@
 {
-  "name": "@ascf/sdk",
+  "name": "@concord/sdk",
   "version": "0.1.0",
   "type": "module",
   "exports": {
@@ -11,14 +11,14 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@ascf/adapters": "workspace:*",
-    "@ascf/core": "workspace:*",
-    "@ascf/foundation": "workspace:*",
-    "@ascf/knowledge": "workspace:*",
-    "@ascf/negotiation": "workspace:*",
-    "@ascf/policy": "workspace:*",
-    "@ascf/state": "workspace:*",
-    "@ascf/workflow": "workspace:*"
+    "@concord/adapters": "workspace:*",
+    "@concord/core": "workspace:*",
+    "@concord/foundation": "workspace:*",
+    "@concord/knowledge": "workspace:*",
+    "@concord/negotiation": "workspace:*",
+    "@concord/policy": "workspace:*",
+    "@concord/state": "workspace:*",
+    "@concord/workflow": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",

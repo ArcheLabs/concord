@@ -1,6 +1,6 @@
-# vibly-ascf
+# concord
 
-ASCF / Vibly prototype implemented as a TypeScript-first pnpm monorepo.
+Concord prototype implemented as a TypeScript-first pnpm monorepo.
 
 ## Development
 
@@ -12,19 +12,19 @@ pnpm demo
 pnpm api
 ```
 
-The first production-shaped target is a local SQLite-backed coordinator, an SDK facade, a deterministic CLI runner, and a Fastify API. Real OpenGov, EVM, P2P, and Vibly Chain integrations are adapter boundaries for later phases.
+The first production-shaped target is a local SQLite-backed coordinator, an SDK facade, a deterministic CLI runner, and a Fastify API. Real OpenGov, EVM, P2P, and Concord Chain integrations are adapter boundaries for later phases.
 
 ## Packages
 
-- `@ascf/foundation`: branded IDs, timestamps, canonical JSON, stable SHA-256 hashing, and audit event envelopes.
-- `@ascf/core`: ASCF domain types, schemas, service ports, runtime/gateway interfaces.
-- `@ascf/state`: memory and SQLite event/projection stores.
-- `@ascf/knowledge`: versioned knowledge candidates, commits, and versions.
-- `@ascf/policy`: action policy registry and policy decision routing.
-- `@ascf/negotiation`: delegate fast vote and simple structured negotiation.
-- `@ascf/workflow`: work orders, runtime dispatch, submissions, reviews, and aggregation.
-- `@ascf/adapters`: mock runtime, script runtime, mock funding/governance, simple coordinator, store re-exports.
-- `@ascf/sdk`: `createASCF()` and `createSQLiteASCF()` facade.
+- `@concord/foundation`: branded IDs, timestamps, canonical JSON, stable SHA-256 hashing, and audit event envelopes.
+- `@concord/core`: Concord domain types, schemas, service ports, runtime/gateway interfaces.
+- `@concord/state`: memory and SQLite event/projection stores.
+- `@concord/knowledge`: versioned knowledge candidates, commits, and versions.
+- `@concord/policy`: action policy registry and policy decision routing.
+- `@concord/negotiation`: delegate fast vote and simple structured negotiation.
+- `@concord/workflow`: work orders, runtime dispatch, submissions, reviews, and aggregation.
+- `@concord/adapters`: mock runtime, script runtime, mock funding/governance, simple coordinator, store re-exports.
+- `@concord/sdk`: `createConcord()` and `createSQLiteConcord()` facade.
 
 ## MVP Loop
 
@@ -37,13 +37,13 @@ goal -> observer -> context -> action -> policy -> negotiation -> work -> runtim
 Use SQLite persistence:
 
 ```bash
-pnpm --filter @ascf/mvp-runner dev -- --db ./data/ascf.db
+pnpm --filter @concord/mvp-runner dev -- --db ./data/concord.db
 ```
 
 Use a local script runtime:
 
 ```bash
-pnpm --filter @ascf/mvp-runner dev -- --runtime-script ./examples/runtime.js
+pnpm --filter @concord/mvp-runner dev -- --runtime-script ./examples/runtime.js
 ```
 
 The script receives JSON on stdin and returns JSON shaped like:
@@ -63,7 +63,7 @@ The script receives JSON on stdin and returns JSON shaped like:
 Start the coordinator:
 
 ```bash
-ASCF_DB=./data/ascf.db pnpm api
+CONCORD_DB=./data/concord.db pnpm api
 ```
 
 Useful endpoints:
@@ -91,6 +91,6 @@ curl http://localhost:3000/state/latest
 
 ## Current Boundaries
 
-This prototype intentionally does not implement real OpenGov, EVM contracts, P2P networking, Vibly Chain, Web Console, complex reputation, slash adjudication, or sybil resistance. Those systems are represented by ports and mock adapters so they can be replaced without changing SDK core dependencies.
+This prototype intentionally does not implement real OpenGov, EVM contracts, P2P networking, Concord Chain, Web Console, complex reputation, slash adjudication, or sybil resistance. Those systems are represented by ports and mock adapters so they can be replaced without changing SDK core dependencies.
 
 The event log is the audit source. State views and operational tables are projections. Knowledge becomes formal only through `KnowledgeCandidate -> KnowledgeCommit -> KnowledgeVersion`.

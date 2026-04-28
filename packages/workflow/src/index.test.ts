@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { makeId, nowTimestamp, version } from "@ascf/foundation";
-import type { ContextBundle, ContextReceipt, ExecutionReceipt, WorkOrder } from "@ascf/core";
+import { makeId, nowTimestamp, version } from "@concord/foundation";
+import type { ContextBundle, ContextReceipt, ExecutionReceipt, WorkOrder } from "@concord/core";
 import { InMemoryReviewService, InMemoryWorkService, RuntimeService } from "./index.js";
 
 describe("workflow services", () => {

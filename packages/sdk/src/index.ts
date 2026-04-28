@@ -20,7 +20,7 @@ import type {
   StateView,
   Submission,
   WorkOrder,
-} from "@ascf/core";
+} from "@concord/core";
 import {
   MockFundingGateway,
   MockGovernanceGateway,
@@ -33,13 +33,13 @@ import {
   SQLiteKnowledgeStore,
   SQLiteProjectionStore,
   createStateView,
-} from "@ascf/adapters";
-import { InMemoryNegotiationService } from "@ascf/negotiation";
-import { InMemoryActionPolicyRegistry } from "@ascf/policy";
-import { InMemoryReviewService, InMemoryWorkService, RuntimeService } from "@ascf/workflow";
-import { createEvent, type ActorId, type GoalId, makeId, nowTimestamp, sha256, version } from "@ascf/foundation";
+} from "@concord/adapters";
+import { InMemoryNegotiationService } from "@concord/negotiation";
+import { InMemoryActionPolicyRegistry } from "@concord/policy";
+import { InMemoryReviewService, InMemoryWorkService, RuntimeService } from "@concord/workflow";
+import { createEvent, type ActorId, type GoalId, makeId, nowTimestamp, sha256, version } from "@concord/foundation";
 
-export interface ASCFConfig {
+export interface ConcordConfig {
   eventStore?: EventStore;
   projectionStore?: ProjectionStore;
   knowledgeStore?: KnowledgeStore;
@@ -73,7 +73,7 @@ export interface LoopResult {
   knowledgeHash: string;
 }
 
-export interface ASCF {
+export interface Concord {
   actors: ActorService;
   goals: GoalService;
   context: ContextService;
@@ -94,7 +94,7 @@ export interface ASCF {
   governanceGateway: GovernanceGateway;
 }
 
-export function createASCF(config: ASCFConfig = {}): ASCF {
+export function createConcord(config: ConcordConfig = {}): Concord {
   const eventStore = config.eventStore ?? new MemoryEventStore();
   const projectionStore = config.projectionStore ?? new MemoryProjectionStore();
   const knowledgeStore = config.knowledgeStore ?? new MemoryKnowledgeStore();
@@ -152,9 +152,9 @@ export function createASCF(config: ASCFConfig = {}): ASCF {
   };
 }
 
-export function createSQLiteASCF(filename: string, config: Omit<ASCFConfig, "eventStore" | "projectionStore" | "knowledgeStore"> = {}): ASCF {
+export function createSQLiteConcord(filename: string, config: Omit<ConcordConfig, "eventStore" | "projectionStore" | "knowledgeStore"> = {}): Concord {
   const eventStore = new SQLiteEventStore(filename);
-  return createASCF({
+  return createConcord({
     ...config,
     eventStore,
     projectionStore: new SQLiteProjectionStore(filename, eventStore.db),
@@ -317,7 +317,7 @@ export class LoopService {
     await ensureDefaultPolicy(this.deps.policies);
 
     const goal = await this.deps.goals.create({
-      title: "Bootstrap ASCF MVP Loop",
+      title: "Bootstrap Concord MVP Loop",
       description: "Run a complete observe, decide, execute, review, and knowledge update loop.",
       createdBy: observer.id,
     });
@@ -328,7 +328,7 @@ export class LoopService {
       proposedBy: observer.id,
       goalId: goal.id,
       title: "Create MVP coordination plan",
-      description: "Produce a concrete execution plan for the next ASCF iteration.",
+      description: "Produce a concrete execution plan for the next Concord iteration.",
       riskLevel: "medium",
       context: observerReceipt,
       inputs: [{ uri: "memory://observations/bootstrap" }],
@@ -442,7 +442,7 @@ async function ensureInitialKnowledge(knowledge: KnowledgeStore, createdBy: Acto
   if (!seedable.seedInitialVersion) {
     throw new Error("Knowledge store does not support initial version seeding");
   }
-  await seedable.seedInitialVersion({ createdBy, seed: "ASCF MVP bootstrap knowledge" });
+  await seedable.seedInitialVersion({ createdBy, seed: "Concord MVP bootstrap knowledge" });
 }
 
 async function ensureDefaultPolicy(registry: ActionPolicyRegistry): Promise<void> {
@@ -481,4 +481,4 @@ async function ensureDefaultPolicy(registry: ActionPolicyRegistry): Promise<void
   });
 }
 
-export { MockRuntimeAdapter, ScriptRuntimeAdapter } from "@ascf/adapters";
+export { MockRuntimeAdapter, ScriptRuntimeAdapter } from "@concord/adapters";

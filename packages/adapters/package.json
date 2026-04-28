@@ -1,5 +1,5 @@
 {
-  "name": "@ascf/adapters",
+  "name": "@concord/adapters",
   "version": "0.1.0",
   "type": "module",
   "exports": {
@@ -11,10 +11,10 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@ascf/core": "workspace:*",
-    "@ascf/foundation": "workspace:*",
-    "@ascf/knowledge": "workspace:*",
-    "@ascf/state": "workspace:*"
+    "@concord/core": "workspace:*",
+    "@concord/foundation": "workspace:*",
+    "@concord/knowledge": "workspace:*",
+    "@concord/state": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",

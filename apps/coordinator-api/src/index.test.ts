@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createASCF } from "@ascf/sdk";
+import { createConcord } from "@concord/sdk";
 import { buildServer } from "./index.js";
 
 describe("coordinator API", () => {
   it("runs the MVP loop through HTTP", async () => {
-    const server = buildServer(createASCF());
+    const server = buildServer(createConcord());
     const response = await server.inject({ method: "POST", url: "/loop/run-once" });
     const body = JSON.parse(response.body) as { reviewAggregation: { result: string }; eventCount: number };
 
@@ -14,7 +14,7 @@ describe("coordinator API", () => {
   });
 
   it("exposes latest state and events", async () => {
-    const server = buildServer(createASCF());
+    const server = buildServer(createConcord());
     await server.inject({ method: "POST", url: "/loop/run-once" });
 
     const state = await server.inject({ method: "GET", url: "/state/latest" });

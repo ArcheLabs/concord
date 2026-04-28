@@ -26,9 +26,9 @@ import type {
   Version,
   WorkClaimId,
   WorkOrderId,
-} from "@ascf/foundation";
+} from "@concord/foundation";
 
-export type ASCFRole = "observer" | "candidate_observer" | "delegate" | "member" | "reviewer" | "guardian";
+export type ConcordRole = "observer" | "candidate_observer" | "delegate" | "member" | "reviewer" | "guardian";
 
 export interface IdentityBinding {
   namespace: string;
@@ -58,7 +58,7 @@ export interface Actor {
 
 export interface RoleAssignment {
   actorId: ActorId;
-  role: ASCFRole;
+  role: ConcordRole;
   scope: {
     goalId?: GoalId;
     loopId?: LoopId;
@@ -169,7 +169,7 @@ export type DecisionFlow =
   | "reject";
 
 export interface EligibilityRule {
-  role?: ASCFRole;
+  role?: ConcordRole;
   capability?: string;
 }
 
@@ -519,7 +519,7 @@ export interface StateSourceAdapter {
 export interface CoordinationGateway {
   publishEvent(event: EventEnvelope<string, unknown>): Promise<void>;
   subscribe(input?: { type?: string[] }): AsyncIterable<EventEnvelope<string, unknown>>;
-  assignRole(input: { actorId: ActorId; role: ASCFRole; scope?: RoleAssignment["scope"] }): Promise<RoleAssignment>;
+  assignRole(input: { actorId: ActorId; role: ConcordRole; scope?: RoleAssignment["scope"] }): Promise<RoleAssignment>;
   acquireLease(input: { resourceId: string; holderId: ActorId; ttlMs: number }): Promise<{ id: string; expiresAt: Timestamp }>;
   broadcastContext(input: { contextBundle: ContextBundle; recipients?: ActorId[] }): Promise<void>;
 }

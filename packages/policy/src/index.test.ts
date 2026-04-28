@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { makeId, nowTimestamp, version } from "@ascf/foundation";
-import type { ActionIntent, ActionPolicy, Actor, ContextBundle, ContextReceipt, DecisionRecord } from "@ascf/core";
-import { MemoryEventStore } from "@ascf/state";
+import { makeId, nowTimestamp, version } from "@concord/foundation";
+import type { ActionIntent, ActionPolicy, Actor, ContextBundle, ContextReceipt, DecisionRecord } from "@concord/core";
+import { MemoryEventStore } from "@concord/state";
 import { InMemoryActionPolicyRegistry } from "./index.js";
 
 describe("policy registry", () => {

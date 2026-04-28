@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { makeId, nowTimestamp, version } from "@ascf/foundation";
-import type { ActionIntent, Actor, ContextReceipt } from "@ascf/core";
+import { makeId, nowTimestamp, version } from "@concord/foundation";
+import type { ActionIntent, Actor, ContextReceipt } from "@concord/core";
 import { InMemoryNegotiationService } from "./index.js";
 
 describe("negotiation service", () => {

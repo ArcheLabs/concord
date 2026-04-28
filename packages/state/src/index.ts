@@ -1,5 +1,5 @@
 import { DatabaseSync } from "node:sqlite";
-import type { EventStore, ProjectionScope, ProjectionStore, StateView } from "@ascf/core";
+import type { EventStore, ProjectionScope, ProjectionStore, StateView } from "@concord/core";
 import {
   assertEventHash,
   createEvent,
@@ -11,7 +11,7 @@ import {
   sha256,
   version,
   type StateViewId,
-} from "@ascf/foundation";
+} from "@concord/foundation";
 
 export class MemoryEventStore implements EventStore {
   private readonly events: EventEnvelope<string, unknown>[] = [];

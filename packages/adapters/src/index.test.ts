@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { makeId, nowTimestamp, version } from "@ascf/foundation";
-import type { ContextBundle, WorkOrder } from "@ascf/core";
+import { makeId, nowTimestamp, version } from "@concord/foundation";
+import type { ContextBundle, WorkOrder } from "@concord/core";
 import { MockRuntimeAdapter, SimpleCoordinatorGateway } from "./index.js";
 
 describe("adapters", () => {

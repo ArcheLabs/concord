@@ -1,5 +1,5 @@
-import type { ActionIntent, ActionPolicy, ActionPolicyRegistry, Actor, ContextBundle, DecisionRecord, EventStore, PolicyDecision } from "@ascf/core";
-import { createEvent, makeId, nowTimestamp } from "@ascf/foundation";
+import type { ActionIntent, ActionPolicy, ActionPolicyRegistry, Actor, ContextBundle, DecisionRecord, EventStore, PolicyDecision } from "@concord/core";
+import { createEvent, makeId, nowTimestamp } from "@concord/foundation";
 
 export class InMemoryActionPolicyRegistry implements ActionPolicyRegistry {
   private readonly policies = new Map<string, ActionPolicy>();

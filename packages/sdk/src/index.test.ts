@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createASCF, createSQLiteASCF } from "./index.js";
+import { createConcord, createSQLiteConcord } from "./index.js";
 
-describe("ASCF facade", () => {
+describe("Concord facade", () => {
   it("runs the MVP loop with memory adapters", async () => {
-    const ascf = createASCF();
-    const result = await ascf.loop.runOnce();
+    const concord = createConcord();
+    const result = await concord.loop.runOnce();
 
     expect(result.reviewAggregation.result).toBe("accepted");
     expect(result.eventCount).toBeGreaterThan(0);
@@ -12,10 +12,10 @@ describe("ASCF facade", () => {
   });
 
   it("runs the MVP loop with sqlite adapters", async () => {
-    const ascf = createSQLiteASCF(":memory:");
-    const result = await ascf.loop.runOnce();
+    const concord = createSQLiteConcord(":memory:");
+    const result = await concord.loop.runOnce();
 
     expect(result.workOrder.status).toBe("accepted");
-    expect(await ascf.state.projections.getLatestStateView()).toMatchObject({ id: result.stateView.id });
+    expect(await concord.state.projections.getLatestStateView()).toMatchObject({ id: result.stateView.id });
   });
 });

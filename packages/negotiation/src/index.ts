@@ -7,8 +7,8 @@ import type {
   NegotiationInstance,
   NegotiationPosition,
   VotingRule,
-} from "@ascf/core";
-import { createEvent, makeId, nowTimestamp } from "@ascf/foundation";
+} from "@concord/core";
+import { createEvent, makeId, nowTimestamp } from "@concord/foundation";
 
 export interface CreateNegotiationInput {
   action: ActionIntent;

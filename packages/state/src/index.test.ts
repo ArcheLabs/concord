@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createEvent, makeId } from "@ascf/foundation";
+import { createEvent, makeId } from "@concord/foundation";
 import { createStateView, MemoryEventStore, MemoryProjectionStore, SQLiteEventStore, SQLiteProjectionStore } from "./index.js";
 
 describe("state stores", () => {

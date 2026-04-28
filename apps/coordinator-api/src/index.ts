@@ -2,16 +2,16 @@ import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import Fastify from "fastify";
-import { createASCF, createSQLiteASCF, type ASCF } from "@ascf/sdk";
+import { createConcord, createSQLiteConcord, type Concord } from "@concord/sdk";
 
-export function buildServer(ascf: ASCF = createDefaultASCF()) {
+export function buildServer(concord: Concord = createDefaultConcord()) {
   const server = Fastify({ logger: false });
 
   server.get("/health", async () => ({ status: "ok" }));
 
   server.post("/actors", async (request) => {
     const body = asRecord(request.body);
-    return ascf.actors.register({
+    return concord.actors.register({
       kind: (body.kind as never) ?? "agent",
       identities: (body.identities as never) ?? [{ namespace: "local", subject: (body.displayName as string | undefined) ?? "actor" }],
       ...(body.displayName ? { displayName: String(body.displayName) } : {}),
@@ -21,7 +21,7 @@ export function buildServer(ascf: ASCF = createDefaultASCF()) {
 
   server.post("/goals", async (request) => {
     const body = asRecord(request.body);
-    return ascf.goals.create({
+    return concord.goals.create({
       title: String(body.title ?? "Untitled goal"),
       description: String(body.description ?? ""),
       createdBy: String(body.createdBy) as never,
@@ -30,7 +30,7 @@ export function buildServer(ascf: ASCF = createDefaultASCF()) {
 
   server.post("/context-bundles", async (request) => {
     const body = asRecord(request.body);
-    return ascf.context.createBundle({
+    return concord.context.createBundle({
       goalId: String(body.goalId) as never,
       actorId: String(body.actorId) as never,
       artifacts: (body.artifacts as never) ?? [],
@@ -39,7 +39,7 @@ export function buildServer(ascf: ASCF = createDefaultASCF()) {
 
   server.post("/actions", async (request) => {
     const body = asRecord(request.body);
-    return ascf.actions.propose({
+    return concord.actions.propose({
       type: String(body.type),
       proposedBy: String(body.proposedBy) as never,
       goalId: String(body.goalId) as never,
@@ -56,31 +56,31 @@ export function buildServer(ascf: ASCF = createDefaultASCF()) {
   server.post("/actions/:id/evaluate", async (request) => {
     const params = asRecord(request.params);
     const body = asRecord(request.body);
-    const action = await ascf.actions.get(String(params.id));
+    const action = await concord.actions.get(String(params.id));
     if (!action) {
       return notFound("action");
     }
-    const actor = await ascf.actors.get(String(body.actorId ?? action.proposedBy) as never);
+    const actor = await concord.actors.get(String(body.actorId ?? action.proposedBy) as never);
     if (!actor) {
       return notFound("actor");
     }
-    const context = await ascf.context.getBundle(String(body.contextBundleId));
+    const context = await concord.context.getBundle(String(body.contextBundleId));
     if (!context) {
       return notFound("context");
     }
-    return ascf.actions.evaluate({ action, actor, context });
+    return concord.actions.evaluate({ action, actor, context });
   });
 
   server.post("/work-orders/:id/claim", async (request) => {
     const params = asRecord(request.params);
     const body = asRecord(request.body);
-    return ascf.work.claim({ workOrderId: String(params.id) as never, actorId: String(body.actorId) as never });
+    return concord.work.claim({ workOrderId: String(params.id) as never, actorId: String(body.actorId) as never });
   });
 
   server.post("/work-orders/:id/submit", async (request) => {
     const params = asRecord(request.params);
     const body = asRecord(request.body);
-    return ascf.work.submit({
+    return concord.work.submit({
       workOrderId: String(params.id) as never,
       submittedBy: String(body.submittedBy) as never,
       contextReceipt: body.contextReceipt as never,
@@ -92,7 +92,7 @@ export function buildServer(ascf: ASCF = createDefaultASCF()) {
 
   server.post("/reviews", async (request) => {
     const body = asRecord(request.body);
-    return ascf.review.submitReview({
+    return concord.review.submitReview({
       target: body.target as never,
       reviewerId: String(body.reviewerId) as never,
       result: (body.result as never) ?? "accept",
@@ -103,27 +103,27 @@ export function buildServer(ascf: ASCF = createDefaultASCF()) {
     });
   });
 
-  server.post("/loop/run-once", async () => ascf.loop.runOnce());
+  server.post("/loop/run-once", async () => concord.loop.runOnce());
 
   server.get("/events", async (request) => {
     const query = asRecord(request.query);
     const type = query.type ? String(query.type).split(",") : undefined;
-    return ascf.state.events.query(type ? { type } : {});
+    return concord.state.events.query(type ? { type } : {});
   });
 
-  server.get("/state/latest", async () => ascf.state.projections.getLatestStateView());
+  server.get("/state/latest", async () => concord.state.projections.getLatestStateView());
 
-  server.get("/knowledge/latest", async () => ascf.knowledge.getLatestVersion());
+  server.get("/knowledge/latest", async () => concord.knowledge.getLatestVersion());
 
   return server;
 }
 
-function createDefaultASCF(): ASCF {
-  const db = process.env.ASCF_DB;
-  if (!db) return createASCF();
+function createDefaultConcord(): Concord {
+  const db = process.env.CONCORD_DB;
+  if (!db) return createConcord();
   const filename = resolve(db);
   mkdirSync(dirname(filename), { recursive: true });
-  return createSQLiteASCF(filename);
+  return createSQLiteConcord(filename);
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -138,5 +138,5 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const port = Number(process.env.PORT ?? 3000);
   const server = buildServer();
   await server.listen({ port, host: "0.0.0.0" });
-  console.log(`ASCF coordinator API listening on http://localhost:${port}`);
+  console.log(`Concord coordinator API listening on http://localhost:${port}`);
 }
