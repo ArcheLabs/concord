@@ -13,6 +13,12 @@
     { "path": "../policy" },
     { "path": "../negotiation" },
     { "path": "../workflow" },
-    { "path": "../adapters" }
+    { "path": "../adapters" },
+    { "path": "../external-input" },
+    { "path": "../selection" },
+    { "path": "../reputation" },
+    { "path": "../incentive" },
+    { "path": "../settlement" },
+    { "path": "../adapters-mock-ledger" }
   ]
 }

@@ -108,7 +108,7 @@ export class MockLedger {
       accountId,
       asset,
       amount,
-      relatedId,
+      ...(relatedId !== undefined ? { relatedId } : {}),
       createdAt: nowTimestamp(),
     };
     this.entries.push(entry);

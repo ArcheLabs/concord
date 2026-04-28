@@ -443,12 +443,21 @@ importers:
       '@concord/adapters':
         specifier: workspace:*
         version: link:../adapters
+      '@concord/adapters-mock-ledger':
+        specifier: workspace:*
+        version: link:../adapters-mock-ledger
       '@concord/core':
         specifier: workspace:*
         version: link:../core
+      '@concord/external-input':
+        specifier: workspace:*
+        version: link:../external-input
       '@concord/foundation':
         specifier: workspace:*
         version: link:../foundation
+      '@concord/incentive':
+        specifier: workspace:*
+        version: link:../incentive
       '@concord/knowledge':
         specifier: workspace:*
         version: link:../knowledge
@@ -461,6 +470,15 @@ importers:
       '@concord/project':
         specifier: workspace:*
         version: link:../project
+      '@concord/reputation':
+        specifier: workspace:*
+        version: link:../reputation
+      '@concord/selection':
+        specifier: workspace:*
+        version: link:../selection
+      '@concord/settlement':
+        specifier: workspace:*
+        version: link:../settlement
       '@concord/state':
         specifier: workspace:*
         version: link:../state

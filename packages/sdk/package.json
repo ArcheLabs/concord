@@ -19,7 +19,13 @@
     "@concord/policy": "workspace:*",
     "@concord/project": "workspace:*",
     "@concord/state": "workspace:*",
-    "@concord/workflow": "workspace:*"
+    "@concord/workflow": "workspace:*",
+    "@concord/external-input": "workspace:*",
+    "@concord/selection": "workspace:*",
+    "@concord/reputation": "workspace:*",
+    "@concord/incentive": "workspace:*",
+    "@concord/settlement": "workspace:*",
+    "@concord/adapters-mock-ledger": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",

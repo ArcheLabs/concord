@@ -33,7 +33,6 @@ import {
   type ProjectStore,
 } from "@concord/project";
 import {
-  MockFundingGateway,
   MockGovernanceGateway,
   MockRuntimeAdapter,
   receiptFromBundle,
@@ -49,6 +48,19 @@ import { InMemoryNegotiationService } from "@concord/negotiation";
 import { InMemoryActionPolicyRegistry } from "@concord/policy";
 import { InMemoryReviewService, InMemoryWorkService, RuntimeService } from "@concord/workflow";
 import { createEvent, type ActorId, type GoalId, makeId, nowTimestamp, sha256, version } from "@concord/foundation";
+import type { ExternalInputService } from "@concord/external-input";
+import { InMemoryExternalInputService } from "@concord/external-input";
+import type { SelectionService, LeaseManager, FailoverService } from "@concord/selection";
+import { InMemorySelectionService, InMemoryLeaseManager, InMemoryFailoverService } from "@concord/selection";
+import type { ReputationEvidenceService } from "@concord/reputation";
+import { InMemoryReputationEvidenceService } from "@concord/reputation";
+import type { IncentiveService, FundingGateway as M13FundingGateway, StakeGateway, PriceGateway } from "@concord/incentive";
+import { InMemoryIncentiveService } from "@concord/incentive";
+import type { SettlementService } from "@concord/settlement";
+import { InMemorySettlementService } from "@concord/settlement";
+import { MockFundingGateway as MockLedgerFundingGateway, MockLedger } from "@concord/adapters-mock-ledger";
+// Keep legacy MockFundingGateway import for existing fundingGateway field
+import { MockFundingGateway } from "@concord/adapters";
 
 export interface ConcordConfig {
   eventStore?: EventStore;
@@ -59,6 +71,19 @@ export interface ConcordConfig {
   runtimes?: AgentRuntimeAdapter[];
   fundingGateway?: FundingGateway;
   governanceGateway?: GovernanceGateway;
+  // M10 – External Input
+  externalInputService?: ExternalInputService;
+  // M11 – Selection / Lease / Failover / Reputation
+  selectionService?: SelectionService;
+  leaseManager?: LeaseManager;
+  failoverService?: FailoverService;
+  reputationService?: ReputationEvidenceService;
+  // M13 – Incentive / Settlement / Ledger
+  incentiveService?: IncentiveService;
+  settlementService?: SettlementService;
+  m13FundingGateway?: M13FundingGateway;
+  stakeGateway?: StakeGateway;
+  priceGateway?: PriceGateway;
 }
 
 export interface LoopResult {
@@ -109,6 +134,16 @@ export interface Concord {
   loop: LoopService;
   fundingGateway: FundingGateway;
   governanceGateway: GovernanceGateway;
+  // M10 – External Input
+  externalInputs: ExternalInputService;
+  // M11 – Selection / Lease / Failover / Reputation
+  selection: SelectionService;
+  leases: LeaseManager;
+  failover: FailoverService;
+  reputation: ReputationEvidenceService;
+  // M13 – Incentive / Settlement / Ledger
+  incentives: IncentiveService;
+  settlement: SettlementService;
 }
 
 export function createConcord(config: ConcordConfig = {}): Concord {
@@ -178,6 +213,13 @@ export function createConcord(config: ConcordConfig = {}): Concord {
     loop,
     fundingGateway: config.fundingGateway ?? new MockFundingGateway(),
     governanceGateway: config.governanceGateway ?? new MockGovernanceGateway(),
+    externalInputs: config.externalInputService ?? new InMemoryExternalInputService(),
+    selection: config.selectionService ?? new InMemorySelectionService(),
+    leases: config.leaseManager ?? new InMemoryLeaseManager(),
+    failover: config.failoverService ?? new InMemoryFailoverService(),
+    reputation: config.reputationService ?? new InMemoryReputationEvidenceService(),
+    incentives: config.incentiveService ?? new InMemoryIncentiveService(config.m13FundingGateway),
+    settlement: config.settlementService ?? new InMemorySettlementService(),
   };
 }
 

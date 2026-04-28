@@ -190,7 +190,7 @@ export class InMemoryExternalInputService implements ExternalInputService {
     const updated: ObservationQueueItem = {
       ...item,
       assignedObserverId: observerId,
-      leaseId,
+      ...(leaseId !== undefined ? { leaseId } : {}),
       status: "assigned",
       updatedAt: nowTimestamp(),
     };
@@ -280,7 +280,7 @@ export class InMemoryExternalInputService implements ExternalInputService {
 
     if (routing.route === "observation_queue") {
       const queueItem = await this.enqueueForObservation(input.id, {
-        objectiveId: opts?.objectiveId,
+        ...(opts?.objectiveId !== undefined ? { objectiveId: opts.objectiveId } : {}),
       });
       const afterEnqueue = await this.getInput(input.id);
       return { input: afterEnqueue ?? final ?? input, queueItem };

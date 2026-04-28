@@ -180,33 +180,33 @@ export class InMemorySelectionService implements SelectionService {
 
     switch (policy.strategy) {
       case "first_available":
-        return pool[0].actorId;
+        return pool[0]?.actorId;
 
       case "random":
-        return pool[this.random.nextInt(pool.length)].actorId;
+        return pool[this.random.nextInt(pool.length)]?.actorId;
 
       case "round_robin": {
         // Simple: pick lowest-index after stable sort by actorId
         const sorted = [...pool].sort((a, b) => a.actorId.localeCompare(b.actorId));
-        return sorted[0].actorId;
+        return sorted[0]?.actorId;
       }
 
       case "reputation_weighted": {
         const sorted = [...pool].sort(
           (a, b) => (b.reputationScore ?? 0) - (a.reputationScore ?? 0),
         );
-        return sorted[0].actorId;
+        return sorted[0]?.actorId;
       }
 
       case "stake_weighted": {
         const sorted = [...pool].sort(
           (a, b) => (b.stakeAmount ?? 0) - (a.stakeAmount ?? 0),
         );
-        return sorted[0].actorId;
+        return sorted[0]?.actorId;
       }
 
       default:
-        return pool[0].actorId;
+        return pool[0]?.actorId;
     }
   }
 

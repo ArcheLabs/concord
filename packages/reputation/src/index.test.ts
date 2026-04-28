@@ -44,7 +44,7 @@ describe("InMemoryReputationEvidenceService", () => {
     await svc.recordEvidence(ACTOR_A, PROJECT_ID, "work_accepted", 1);
     const slashes = await svc.listEvidence({ kind: "slash" });
     expect(slashes).toHaveLength(1);
-    expect(slashes[0].kind).toBe("slash");
+    expect(slashes[0]?.kind).toBe("slash");
   });
 
   it("clamps score to [-1, 1]", async () => {
