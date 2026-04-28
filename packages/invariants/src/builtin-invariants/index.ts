@@ -6,6 +6,10 @@ import { workInvariants } from "./work.invariants.js";
 import { reviewInvariants } from "./review.invariants.js";
 import { coordinatorInvariants } from "./coordinator.invariants.js";
 import { governanceInvariants } from "./governance.invariants.js";
+import { projectInvariants } from "./project.invariants.js";
+import { objectiveInvariants } from "./objective.invariants.js";
+import { boundaryInvariants } from "./boundary.invariants.js";
+import { agentInvariants } from "./agent.invariants.js";
 
 export const builtinInvariants: ProtocolInvariant[] = [
   ...actionInvariants,
@@ -15,4 +19,8 @@ export const builtinInvariants: ProtocolInvariant[] = [
   ...reviewInvariants,
   ...coordinatorInvariants,
   ...governanceInvariants,
+  ...projectInvariants,
+  ...objectiveInvariants,
+  ...boundaryInvariants,
+  ...agentInvariants,
 ];
