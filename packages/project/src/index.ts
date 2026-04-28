@@ -23,7 +23,7 @@ import type {
   RuntimeBindingId,
   AddressBindingId,
 } from "@concord/foundation";
-import type { ConcordRole, DecisionFlow, EventStore, StateView } from "@concord/core";
+import type { ActionIntent, ActionPolicyRegistry, Actor, ConcordRole, ContextBundle, DecisionFlow, EventStore, PolicyDecision, StateView } from "@concord/core";
 
 export type {
   AgentId,
@@ -1186,6 +1186,86 @@ export class BoundaryService {
   }
 }
 
+export class BoundaryAwareActionPolicyRegistry implements ActionPolicyRegistry {
+  constructor(
+    private readonly base: ActionPolicyRegistry,
+    private readonly store: ProjectStore,
+    private readonly boundaries: BoundaryService,
+    private readonly eventStore?: EventStore,
+  ) {}
+
+  getPolicy(actionType: string) {
+    return this.base.getPolicy(actionType);
+  }
+
+  registerPolicy(input: Parameters<ActionPolicyRegistry["registerPolicy"]>[0]): Promise<void> {
+    return this.base.registerPolicy(input);
+  }
+
+  async evaluate(input: { action: ActionIntent; actor: Actor; context: ContextBundle }): Promise<PolicyDecision> {
+    if (!input.context.projectId && !input.action.projectId) {
+      return this.base.evaluate(input);
+    }
+    const projectId = input.context.projectId ?? input.action.projectId!;
+    const project = await this.store.getProject(projectId);
+    if (!project || project.status !== "active") {
+      return this.recordBoundaryDecision(input, "rejected", "Project is not active");
+    }
+    const objectiveId = input.context.objectiveId ?? input.action.objectiveId ?? project.primaryObjectiveId;
+    if (objectiveId) {
+      const objective = await this.store.getObjective(objectiveId);
+      if (!objective || objective.projectId !== project.id || objective.status !== "active") {
+        return this.recordBoundaryDecision(input, "rejected", "Objective is not active");
+      }
+    }
+    const agent = await this.store.getAgent(input.actor.id as never);
+    if (agent) {
+      const principal = await this.store.getPrincipal(agent.principalId);
+      if (agent.status !== "active" || principal?.status !== "active") {
+        return this.recordBoundaryDecision(input, "rejected", "Actor principal or agent is not active");
+      }
+      const membership = await this.store.findMembership({ projectId: project.id, agentId: agent.id });
+      if (!membership || membership.status !== "active") {
+        return this.recordBoundaryDecision(input, "rejected", "Actor is not an active project member");
+      }
+    }
+    const boundaryDecision = await this.boundaries.evaluateAction({
+      projectId: project.id,
+      actionType: input.action.type,
+      ...((agent?.id ?? input.context.permissionScope?.principalId) ? { actor: (agent?.id ?? input.context.permissionScope?.principalId)! } : {}),
+      ...(input.context.permissionScope?.roles ? { roles: input.context.permissionScope.roles } : {}),
+    });
+    if (!boundaryDecision.allowed) {
+      return this.recordBoundaryDecision(input, "rejected", boundaryDecision.reasons.join("; ") || "Boundary denied action");
+    }
+    const baseDecision = await this.base.evaluate(input);
+    return mergePolicyWithBoundary(baseDecision, boundaryDecision);
+  }
+
+  private async recordBoundaryDecision(
+    input: { action: ActionIntent; actor: Actor },
+    result: PolicyDecision["result"],
+    reason: string,
+  ): Promise<PolicyDecision> {
+    const decision: PolicyDecision = {
+      id: makeId("PolicyDecisionId"),
+      actionId: input.action.id,
+      result,
+      reason,
+      createdAt: nowTimestamp(),
+    };
+    await this.eventStore?.append(
+      createEvent({
+        type: "ActionPolicyEvaluated",
+        actorId: input.actor.id,
+        correlationId: input.action.id,
+        payload: { action: input.action, decision, boundary: true },
+      }),
+    );
+    return decision;
+  }
+}
+
 export class MemoryProjectStore implements ProjectStore {
   private readonly projects = new Map<ProjectId, Project>();
   private readonly objectives = new Map<ObjectiveId, Objective>();
@@ -1764,6 +1844,35 @@ function maxFlow(left: BoundaryEvaluation["requiredFlow"] | undefined, right: No
   const order: NonNullable<BoundaryEvaluation["requiredFlow"]>[] = ["direct", "delegate_vote", "structured_negotiation", "guardian_review", "governance_request"];
   if (!left) return right;
   return order[Math.max(order.indexOf(left), order.indexOf(right))]!;
+}
+
+function mergePolicyWithBoundary(decision: PolicyDecision, boundary: BoundaryEvaluation): PolicyDecision {
+  if (!boundary.requiredFlow || decision.result === "rejected") return decision;
+  const current = decision.requiredNextStep?.kind;
+  const currentFlow = current && current !== "work_order" && current !== "review_protocol" && current !== "reject" ? current : undefined;
+  const required = maxFlow(currentFlow as BoundaryEvaluation["requiredFlow"], boundary.requiredFlow);
+  if (!required || required === currentFlow) return decision;
+  return {
+    ...decision,
+    result: policyResultForFlow(required),
+    reason: `${decision.reason}; boundary requires ${required}`,
+    requiredNextStep: { kind: required, reason: boundary.reasons.join("; ") || "Boundary escalation rule matched" },
+  };
+}
+
+function policyResultForFlow(flow: NonNullable<BoundaryEvaluation["requiredFlow"]>): PolicyDecision["result"] {
+  switch (flow) {
+    case "direct":
+      return "approved_directly";
+    case "delegate_vote":
+      return "requires_delegate_vote";
+    case "structured_negotiation":
+      return "requires_negotiation";
+    case "guardian_review":
+      return "requires_guardian";
+    case "governance_request":
+      return "requires_governance";
+  }
 }
 
 function limit<T>(values: T[], count: number | undefined): T[] {

@@ -23,6 +23,7 @@ import type {
 } from "@concord/core";
 import {
   AgentService,
+  BoundaryAwareActionPolicyRegistry,
   BoundaryService,
   MemoryProjectStore,
   ObjectiveService,
@@ -115,7 +116,9 @@ export function createConcord(config: ConcordConfig = {}): Concord {
   const projectionStore = config.projectionStore ?? new MemoryProjectionStore();
   const knowledgeStore = config.knowledgeStore ?? new MemoryKnowledgeStore();
   const projectStore = config.projectStore ?? new MemoryProjectStore();
-  const policyRegistry = config.policyRegistry ?? new InMemoryActionPolicyRegistry(eventStore);
+  const boundaries = new BoundaryService(projectStore, eventStore);
+  const basePolicyRegistry = config.policyRegistry ?? new InMemoryActionPolicyRegistry(eventStore);
+  const policyRegistry = new BoundaryAwareActionPolicyRegistry(basePolicyRegistry, projectStore, boundaries, eventStore);
   const negotiation = new InMemoryNegotiationService(eventStore);
   const work = new InMemoryWorkService(eventStore, { projectStore });
   const runtime = new RuntimeService(config.runtimes?.length ? config.runtimes : [new MockRuntimeAdapter()], { projectStore });
@@ -124,7 +127,6 @@ export function createConcord(config: ConcordConfig = {}): Concord {
   const actors = new ActorService(eventStore);
   const principals = new PrincipalService(projectStore, eventStore);
   const projectAgents = new AgentService(projectStore, eventStore);
-  const boundaries = new BoundaryService(projectStore, eventStore);
   const projects = new ProjectService(projectStore, eventStore);
   const objectives = new ObjectiveService(projectStore, eventStore);
   const goals = new GoalService(eventStore);
