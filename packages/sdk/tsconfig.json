@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../foundation" },
+    { "path": "../core" },
+    { "path": "../state" },
+    { "path": "../knowledge" },
+    { "path": "../policy" },
+    { "path": "../negotiation" },
+    { "path": "../workflow" },
+    { "path": "../adapters" }
+  ]
+}
