@@ -71,8 +71,9 @@ export class DefaultTraceRecorder implements TraceRecorder {
 
   async recordEvent(event: EventEnvelope<string, unknown>): Promise<void> {
     this.ensureStarted();
-    this.trace!.events.push(event);
-    captureEventSnapshot(this.trace!.snapshots, event);
+    const snapshot = structuredClone(event);
+    this.trace!.events.push(snapshot);
+    captureEventSnapshot(this.trace!.snapshots, snapshot);
   }
 
   async finish(input: FinishTraceInput = {}): Promise<ProtocolTrace> {

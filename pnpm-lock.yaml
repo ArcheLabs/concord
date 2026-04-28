@@ -45,9 +45,18 @@ importers:
 
   apps/mvp-runner:
     dependencies:
+      '@concord/invariants':
+        specifier: workspace:*
+        version: link:../../packages/invariants
+      '@concord/scenario':
+        specifier: workspace:*
+        version: link:../../packages/scenario
       '@concord/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
+      '@concord/trace':
+        specifier: workspace:*
+        version: link:../../packages/trace
     devDependencies:
       '@types/node':
         specifier: ^22.15.3

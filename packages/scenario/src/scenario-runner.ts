@@ -24,6 +24,7 @@ interface ScenarioState {
   submission?: Awaited<ReturnType<ReturnType<typeof createConcord>["work"]["submit"]>>;
   review?: Awaited<ReturnType<ReturnType<typeof createConcord>["review"]["submitReview"]>>;
   knowledgeCandidate?: KnowledgeCandidate;
+  initialKnowledgeVersion?: unknown;
   latestKnowledgeVersion?: unknown;
 }
 
@@ -68,7 +69,7 @@ export class DefaultScenarioRunner {
       state.actors.set(actorInput.id, actor);
     }
     const createdBy = firstActor(state).id;
-    await seedKnowledge(stores.knowledgeStore, input.scenario, input.scenarioPath, createdBy);
+    state.initialKnowledgeVersion = await seedKnowledge(stores.knowledgeStore, input.scenario, input.scenarioPath, createdBy);
     for (const policyInput of input.scenario.policies) {
       await concord.policies.registerPolicy({
         policy: scenarioPolicy(policyInput),
@@ -98,7 +99,7 @@ export class DefaultScenarioRunner {
         submissions: state.submission ? [state.submission] : [],
         reviews: state.review ? [state.review] : [],
         knowledgeCandidates: state.knowledgeCandidate ? [state.knowledgeCandidate] : [],
-        knowledgeVersions: latestKnowledgeVersion ? [latestKnowledgeVersion] : [],
+        knowledgeVersions: [state.initialKnowledgeVersion, latestKnowledgeVersion].filter(Boolean),
         stateViews: [stateView],
       },
       finalState: {
@@ -317,7 +318,7 @@ async function seedKnowledge(knowledgeStore: MemoryKnowledgeStore | SQLiteKnowle
       return { ...knowledge, content: await readFile(path, "utf8") };
     }),
   );
-  await knowledgeStore.seedInitialVersion({ id: makeId("KnowledgeVersionId", `knowledge_${scenario.id}_bootstrap`), createdBy, seed });
+  return knowledgeStore.seedInitialVersion({ id: makeId("KnowledgeVersionId", `knowledge_${scenario.id}_bootstrap`), createdBy, seed });
 }
 
 function scenarioPolicy(policyInput: ScenarioFile["policies"][number]): ActionPolicy {
