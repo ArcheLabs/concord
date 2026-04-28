@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@concord/core": "workspace:*",
-    "@concord/foundation": "workspace:*"
+    "@concord/foundation": "workspace:*",
+    "@concord/project": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",

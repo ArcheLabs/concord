@@ -14,13 +14,17 @@ import type {
   WorkOrder,
 } from "@concord/core";
 import { createEvent, type ActorId, type WorkOrderId, makeId, nowTimestamp } from "@concord/foundation";
+import type { ProjectStore, RuntimeBinding } from "@concord/project";
 
 export class InMemoryWorkService {
   private readonly workOrders = new Map<WorkOrderId, WorkOrder>();
   private readonly claims = new Map<string, WorkClaim>();
   private readonly submissions = new Map<string, Submission>();
 
-  constructor(private readonly eventStore?: EventStore) {}
+  constructor(
+    private readonly eventStore?: EventStore,
+    private readonly options: { projectStore?: ProjectStore } = {},
+  ) {}
 
   async createWorkOrder(input: Omit<WorkOrder, "id" | "status" | "createdAt"> & { id?: WorkOrderId }): Promise<WorkOrder> {
     const workOrder: WorkOrder = {
@@ -47,6 +51,7 @@ export class InMemoryWorkService {
     if (workOrder.status !== "open") {
       throw new Error(`Work order is not open: ${input.workOrderId}`);
     }
+    await this.assertProjectMembership(workOrder, input.actorId);
     const claim: WorkClaim = {
       id: makeId("WorkClaimId"),
       workOrderId: input.workOrderId,
@@ -78,6 +83,11 @@ export class InMemoryWorkService {
       id: makeId("SubmissionId"),
       workOrderId: input.workOrderId,
       submittedBy: input.submittedBy,
+      ...(workOrder.projectId ? { projectId: workOrder.projectId } : {}),
+      ...(workOrder.objectiveId ? { objectiveId: workOrder.objectiveId } : {}),
+      ...(input.executionReceipt.principalId ? { principalId: input.executionReceipt.principalId } : {}),
+      ...(input.executionReceipt.agentId ? { agentId: input.executionReceipt.agentId } : {}),
+      ...(input.executionReceipt.runtimeBindingId ? { runtimeBindingId: input.executionReceipt.runtimeBindingId } : {}),
       contextReceipt: input.contextReceipt,
       executionReceipt: input.executionReceipt,
       artifacts: input.artifacts,
@@ -129,12 +139,25 @@ export class InMemoryWorkService {
     }
     return workOrder;
   }
+
+  private async assertProjectMembership(workOrder: WorkOrder, actorId: ActorId): Promise<void> {
+    if (!workOrder.projectId || !this.options.projectStore) return;
+    const agent = await this.options.projectStore.getAgent(actorId as never);
+    if (!agent || agent.status !== "active") throw new Error(`Agent is not active project member: ${actorId}`);
+    const principal = await this.options.projectStore.getPrincipal(agent.principalId);
+    if (!principal || principal.status !== "active") throw new Error(`Principal is not active for agent: ${actorId}`);
+    const membership = await this.options.projectStore.findMembership({ projectId: workOrder.projectId, agentId: agent.id });
+    if (!membership || membership.status !== "active") throw new Error(`Active project membership not found for agent: ${actorId}`);
+  }
 }
 
 export class RuntimeService {
   private readonly runtimes = new Map<string, AgentRuntimeAdapter>();
 
-  constructor(runtimes: AgentRuntimeAdapter[] = []) {
+  constructor(
+    runtimes: AgentRuntimeAdapter[] = [],
+    private readonly options: { projectStore?: ProjectStore } = {},
+  ) {
     for (const runtime of runtimes) {
       this.runtimes.set(runtime.id, runtime);
     }
@@ -149,12 +172,37 @@ export class RuntimeService {
     actorId: ActorId;
     workOrder: WorkOrder;
     context: ContextBundle;
+    runtimeBindingId?: RuntimeBinding["id"];
   }): Promise<RuntimeExecutionResult> {
+    const runtimeBinding = await this.assertRuntimeBinding(input);
     const runtime = input.runtimeId ? this.runtimes.get(input.runtimeId) : this.runtimes.values().next().value;
     if (!runtime) {
       throw new Error("No runtime adapter registered");
     }
-    return runtime.execute({ actorId: input.actorId, workOrder: input.workOrder, context: input.context });
+    const result = await runtime.execute({ actorId: input.actorId, workOrder: input.workOrder, context: input.context });
+    if (!runtimeBinding && !input.context.projectId) return result;
+    return {
+      ...result,
+      executionReceipt: {
+        ...result.executionReceipt,
+        ...(input.context.projectId ? { projectId: input.context.projectId } : {}),
+        ...(input.context.objectiveId ? { objectiveId: input.context.objectiveId } : {}),
+        ...(runtimeBinding ? { principalId: runtimeBinding.principalId, agentId: runtimeBinding.agentId, runtimeBindingId: runtimeBinding.id } : {}),
+      },
+    };
+  }
+
+  private async assertRuntimeBinding(input: {
+    actorId: ActorId;
+    context: ContextBundle;
+    runtimeBindingId?: RuntimeBinding["id"];
+  }): Promise<RuntimeBinding | null> {
+    const runtimeBindingId = input.runtimeBindingId ?? input.context.permissionScope?.runtimeBindingId;
+    if (!runtimeBindingId || !this.options.projectStore) return null;
+    const binding = await this.options.projectStore.getRuntimeBinding(runtimeBindingId as never);
+    if (!binding || binding.status !== "active") throw new Error(`Runtime binding is not active: ${runtimeBindingId}`);
+    if (binding.agentId !== (input.actorId as never)) throw new Error(`Runtime binding does not belong to actor: ${input.actorId}`);
+    return binding;
   }
 }
 

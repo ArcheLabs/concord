@@ -19,6 +19,12 @@ import type {
   NegotiationInstanceId,
   NegotiationProtocolId,
   PolicyDecisionId,
+  ProjectId,
+  ObjectiveId,
+  BoundaryId,
+  PrincipalId,
+  AgentId,
+  RuntimeBindingId,
   ReviewRecordId,
   StateViewId,
   SubmissionId,
@@ -98,6 +104,8 @@ export type ProjectionScope = { goalId?: GoalId };
 export interface ContextBundle {
   id: ContextBundleId;
   goalId: GoalId;
+  projectId?: ProjectId;
+  objectiveId?: ObjectiveId;
   loopId?: LoopId;
   stateViewId: StateViewId;
   stateViewVersion: Version;
@@ -105,6 +113,9 @@ export interface ContextBundle {
   knowledgeHash: Hash;
   protocolVersion: Version;
   actionPolicyVersion: Version;
+  boundaryId?: BoundaryId;
+  boundaryHash?: Hash;
+  permissionScope?: ContextPermissionScope;
   artifacts: ArtifactRef[];
   createdAt: Timestamp;
   expiresAt?: Timestamp;
@@ -112,14 +123,31 @@ export interface ContextBundle {
 
 export interface ContextReceipt {
   contextBundleId: ContextBundleId;
+  projectId?: ProjectId;
+  objectiveId?: ObjectiveId;
   stateViewId: StateViewId;
   stateViewVersion: Version;
   knowledgeVersionId: KnowledgeVersionId;
   knowledgeHash: Hash;
   protocolVersion: Version;
   actionPolicyVersion: Version;
+  boundaryId?: BoundaryId;
+  boundaryHash?: Hash;
+  principalId?: PrincipalId;
+  agentId?: AgentId;
+  runtimeBindingId?: RuntimeBindingId;
   acceptedAt: Timestamp;
   actorId: ActorId;
+}
+
+export interface ContextPermissionScope {
+  principalId?: PrincipalId;
+  agentId?: AgentId;
+  runtimeBindingId?: RuntimeBindingId;
+  roles?: ConcordRole[];
+  allowedActionTypes?: string[];
+  prohibitedActionTypes?: string[];
+  riskLimit?: "low" | "medium" | "high" | "critical";
 }
 
 export interface ExpectedOutput {
@@ -148,6 +176,8 @@ export interface ActionIntent {
   type: string;
   proposedBy: ActorId;
   goalId: GoalId;
+  projectId?: ProjectId;
+  objectiveId?: ObjectiveId;
   loopId?: LoopId;
   title: string;
   description: string;
@@ -270,11 +300,16 @@ export interface WorkOrder {
   id: WorkOrderId;
   actionId: ActionId;
   goalId: GoalId;
+  projectId?: ProjectId;
+  objectiveId?: ObjectiveId;
   title: string;
   description: string;
   requiredCapabilities: CapabilityRequirement[];
   contextBundleId: ContextBundleId;
   reward?: RewardOffer;
+  requiredPrincipalStatus?: Array<"pending" | "active" | "suspended" | "revoked">;
+  requiredAgentStatus?: Array<"pending" | "active" | "paused" | "suspended" | "retired">;
+  requiredRuntimeKind?: Array<"script" | "mock" | "local_llm" | "browser_llm" | "openclaw" | "a2a" | "mcp" | "hosted_agent" | "human_assisted">;
   status: "open" | "claimed" | "submitted" | "under_review" | "accepted" | "rejected" | "expired" | "cancelled";
   createdAt: Timestamp;
   expiresAt?: Timestamp;
@@ -291,6 +326,11 @@ export interface WorkClaim {
 export interface ExecutionReceipt {
   runtimeId: string;
   actorId: ActorId;
+  projectId?: ProjectId;
+  objectiveId?: ObjectiveId;
+  principalId?: PrincipalId;
+  agentId?: AgentId;
+  runtimeBindingId?: RuntimeBindingId;
   startedAt: Timestamp;
   finishedAt: Timestamp;
   inputContext: ContextReceipt;
@@ -304,6 +344,11 @@ export interface Submission {
   id: SubmissionId;
   workOrderId: WorkOrderId;
   submittedBy: ActorId;
+  projectId?: ProjectId;
+  objectiveId?: ObjectiveId;
+  principalId?: PrincipalId;
+  agentId?: AgentId;
+  runtimeBindingId?: RuntimeBindingId;
   contextReceipt: ContextReceipt;
   executionReceipt: ExecutionReceipt;
   artifacts: ArtifactRef[];

@@ -117,8 +117,8 @@ export function createConcord(config: ConcordConfig = {}): Concord {
   const projectStore = config.projectStore ?? new MemoryProjectStore();
   const policyRegistry = config.policyRegistry ?? new InMemoryActionPolicyRegistry(eventStore);
   const negotiation = new InMemoryNegotiationService(eventStore);
-  const work = new InMemoryWorkService(eventStore);
-  const runtime = new RuntimeService(config.runtimes?.length ? config.runtimes : [new MockRuntimeAdapter()]);
+  const work = new InMemoryWorkService(eventStore, { projectStore });
+  const runtime = new RuntimeService(config.runtimes?.length ? config.runtimes : [new MockRuntimeAdapter()], { projectStore });
   const review = new InMemoryReviewService(eventStore);
 
   const actors = new ActorService(eventStore);

@@ -185,12 +185,19 @@ export class SimpleCoordinatorGateway implements CoordinationGateway {
 export function receiptFromBundle(context: ContextBundle, actorId: ActorId): ContextReceipt {
   return {
     contextBundleId: context.id,
+    ...(context.projectId ? { projectId: context.projectId } : {}),
+    ...(context.objectiveId ? { objectiveId: context.objectiveId } : {}),
     stateViewId: context.stateViewId,
     stateViewVersion: context.stateViewVersion,
     knowledgeVersionId: context.knowledgeVersionId,
     knowledgeHash: context.knowledgeHash,
     protocolVersion: context.protocolVersion,
     actionPolicyVersion: context.actionPolicyVersion,
+    ...(context.boundaryId ? { boundaryId: context.boundaryId } : {}),
+    ...(context.boundaryHash ? { boundaryHash: context.boundaryHash } : {}),
+    ...(context.permissionScope?.principalId ? { principalId: context.permissionScope.principalId } : {}),
+    ...(context.permissionScope?.agentId ? { agentId: context.permissionScope.agentId } : {}),
+    ...(context.permissionScope?.runtimeBindingId ? { runtimeBindingId: context.permissionScope.runtimeBindingId } : {}),
     acceptedAt: nowTimestamp(),
     actorId,
   };
