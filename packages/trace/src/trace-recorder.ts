@@ -36,6 +36,14 @@ const emptySnapshots = (): TraceSnapshots => ({
   incentiveIntents: [],
   governanceIntents: [],
   humanRequests: [],
+  projects: [],
+  objectives: [],
+  boundaries: [],
+  principals: [],
+  agents: [],
+  runtimeBindings: [],
+  memberships: [],
+  projectBootstraps: [],
 });
 
 const emptyInitialState = (): TraceInitialState => ({
@@ -177,6 +185,30 @@ export function captureEventSnapshot(snapshots: TraceSnapshots, event: EventEnve
       break;
     case "StateViewUpdated":
       snapshots.stateViews.push(event.payload);
+      break;
+    case "ProjectCreated":
+      if (payload["project"]) snapshots.projects?.push(payload["project"]);
+      break;
+    case "ProjectBootstrapped":
+      if (payload["bootstrap"]) snapshots.projectBootstraps?.push(payload["bootstrap"]);
+      break;
+    case "ObjectiveCreated":
+      if (payload["objective"]) snapshots.objectives?.push(payload["objective"]);
+      break;
+    case "BoundaryCreated":
+      if (payload["boundary"]) snapshots.boundaries?.push(payload["boundary"]);
+      break;
+    case "PrincipalRegistered":
+      if (payload["principal"]) snapshots.principals?.push(payload["principal"]);
+      break;
+    case "AgentRegistered":
+      if (payload["agent"]) snapshots.agents?.push(payload["agent"]);
+      break;
+    case "RuntimeBindingCreated":
+      if (payload["runtimeBinding"]) snapshots.runtimeBindings?.push(payload["runtimeBinding"]);
+      break;
+    case "ProjectMemberAdded":
+      if (payload["membership"]) snapshots.memberships?.push(payload["membership"]);
       break;
   }
 }

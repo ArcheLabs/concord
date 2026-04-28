@@ -1,4 +1,5 @@
 import { hashEvent, nowTimestamp, type EventEnvelope } from "@concord/foundation";
+import { hashBoundary } from "@concord/project";
 import { DefaultTraceReplayer } from "./trace-replayer.js";
 import type {
   ProtocolTrace,
@@ -19,6 +20,7 @@ export class DefaultTraceVerifier {
 
     validateSchema(trace, errors);
     validateEvents(trace.events, errors, warnings);
+    validateProjectArtifacts(trace, errors, warnings);
     invariantResults.push(...runMinimalTraceInvariants(trace));
     if (options.runInvariants) {
       invariantResults.push(...(await options.runInvariants(trace, options)));
@@ -70,6 +72,74 @@ export class DefaultTraceVerifier {
       warnings,
       invariantResults,
     };
+  }
+}
+
+function validateProjectArtifacts(trace: ProtocolTrace, errors: TraceVerificationError[], warnings: TraceVerificationWarning[]): void {
+  const snapshots = trace.snapshots;
+  const projects = byId(snapshots.projects ?? []);
+  const objectives = byId(snapshots.objectives ?? []);
+  const boundaries = byId(snapshots.boundaries ?? []);
+  const principals = byId(snapshots.principals ?? []);
+  const agents = byId(snapshots.agents ?? []);
+  const runtimeBindings = byId(snapshots.runtimeBindings ?? []);
+  const memberships = byId(snapshots.memberships ?? []);
+  if (!projects.size && !principals.size && !agents.size) return;
+
+  for (const project of projects.values()) {
+    const projectId = stringField(project, "id");
+    const boundaryId = stringField(project, "boundaryId");
+    if (project.status === "active") {
+      const activeBoundaries = [...boundaries.values()].filter((boundary) => boundary.projectId === projectId && boundary.status === "active");
+      if (activeBoundaries.length !== 1) errors.push({ code: "project.active_boundary.invalid", message: `Active project must have exactly one active boundary: ${projectId}` });
+    }
+    if (boundaryId && !boundaries.has(boundaryId)) errors.push({ code: "project.boundary_missing", message: `Project references missing boundary: ${boundaryId}` });
+    const sponsor = stringField(project, "sponsorPrincipalId");
+    if (sponsor && !principals.has(sponsor)) errors.push({ code: "project.sponsor_missing", message: `Project references missing sponsor principal: ${sponsor}` });
+  }
+  for (const objective of objectives.values()) {
+    const projectId = stringField(objective, "projectId");
+    if (projectId && !projects.has(projectId)) errors.push({ code: "objective.project_missing", message: `Objective references missing project: ${projectId}` });
+  }
+  for (const agent of agents.values()) {
+    const principalId = stringField(agent, "principalId");
+    const principal = principalId ? principals.get(principalId) : undefined;
+    if (!principalId || !principal) errors.push({ code: "agent.principal_missing", message: `Agent references missing principal: ${stringField(agent, "id")}` });
+    if (agent.status === "active" && principal && ["suspended", "revoked"].includes(String(principal.status))) {
+      errors.push({ code: "agent.principal_inactive", message: `Active agent belongs to inactive principal: ${stringField(agent, "id")}` });
+    }
+  }
+  for (const binding of runtimeBindings.values()) {
+    const agentId = stringField(binding, "agentId");
+    const principalId = stringField(binding, "principalId");
+    if (agentId && !agents.has(agentId)) errors.push({ code: "runtime_binding.agent_missing", message: `Runtime binding references missing agent: ${agentId}` });
+    if (principalId && !principals.has(principalId)) errors.push({ code: "runtime_binding.principal_missing", message: `Runtime binding references missing principal: ${principalId}` });
+  }
+  for (const membership of memberships.values()) {
+    const projectId = stringField(membership, "projectId");
+    const principalId = stringField(membership, "principalId");
+    const agentId = stringField(membership, "agentId");
+    if (projectId && !projects.has(projectId)) errors.push({ code: "membership.project_missing", message: `Membership references missing project: ${projectId}` });
+    if (principalId && !principals.has(principalId)) errors.push({ code: "membership.principal_missing", message: `Membership references missing principal: ${principalId}` });
+    if (agentId && !agents.has(agentId)) errors.push({ code: "membership.agent_missing", message: `Membership references missing agent: ${agentId}` });
+  }
+  for (const context of snapshots.contextBundles as Record<string, unknown>[]) {
+    const projectId = stringField(context, "projectId");
+    if (projectId && !projects.has(projectId)) errors.push({ code: "context.project_missing", message: `Context references missing project: ${projectId}` });
+    const boundaryId = stringField(context, "boundaryId");
+    const boundary = boundaryId ? boundaries.get(boundaryId) : undefined;
+    const boundaryHash = hashValue(context.boundaryHash);
+    if (boundary && boundaryHash && hashBoundary(boundary as never).value !== boundaryHash) {
+      warnings.push({ code: "context.boundary_hash_stale", message: `Context boundary hash is stale: ${String(context.id)}` });
+    }
+  }
+  for (const submission of snapshots.submissions as Record<string, unknown>[]) {
+    const bindingId = stringField(submission, "runtimeBindingId");
+    const binding = bindingId ? runtimeBindings.get(bindingId) : undefined;
+    if (bindingId && !binding) errors.push({ code: "submission.runtime_binding_missing", message: `Submission references missing runtime binding: ${bindingId}` });
+    if (binding && stringField(submission, "principalId") !== stringField(binding, "principalId")) {
+      errors.push({ code: "submission.principal_mismatch", message: `Submission principal does not match runtime binding: ${String(submission.id)}` });
+    }
   }
 }
 
@@ -160,4 +230,25 @@ function runMinimalTraceInvariants(trace: ProtocolTrace): TraceInvariantResult[]
   });
 
   return results;
+}
+
+function byId(values: unknown[]): Map<string, Record<string, unknown>> {
+  const map = new Map<string, Record<string, unknown>>();
+  for (const value of values) {
+    if (!value || typeof value !== "object") continue;
+    const record = value as Record<string, unknown>;
+    const id = stringField(record, "id");
+    if (id) map.set(id, record);
+  }
+  return map;
+}
+
+function stringField(record: Record<string, unknown>, key: string): string | undefined {
+  return typeof record[key] === "string" ? record[key] : undefined;
+}
+
+function hashValue(value: unknown): string | undefined {
+  return value && typeof value === "object" && typeof (value as { value?: unknown }).value === "string"
+    ? String((value as { value: string }).value)
+    : undefined;
 }

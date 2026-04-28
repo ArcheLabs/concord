@@ -13,6 +13,7 @@
   "dependencies": {
     "@concord/core": "workspace:*",
     "@concord/foundation": "workspace:*",
+    "@concord/project": "workspace:*",
     "@concord/state": "workspace:*"
   },
   "devDependencies": {

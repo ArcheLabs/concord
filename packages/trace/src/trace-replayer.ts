@@ -35,6 +35,7 @@ export class DefaultTraceReplayer {
       eventCount: replayedEvents.length,
       lastEventHash: replayedEvents.at(-1)?.hash?.value,
     });
+    const projectState = rebuildProjectState(replayedEvents);
 
     return {
       ok: errors.length === 0,
@@ -43,6 +44,7 @@ export class DefaultTraceReplayer {
       ...(latestKnowledgeVersion ? { latestKnowledgeVersion } : {}),
       eventRoot,
       stateHash,
+      projectState,
       errors,
     };
   }
@@ -62,4 +64,45 @@ export function eventsForReplay(events: EventEnvelope<string, unknown>[], option
 
 function extractLatestPayload(events: EventEnvelope<string, unknown>[], type: string): unknown | undefined {
   return [...events].reverse().find((event) => event.type === type)?.payload;
+}
+
+function rebuildProjectState(events: EventEnvelope<string, unknown>[]): unknown {
+  const projects = new Map<string, unknown>();
+  const objectives = new Map<string, unknown>();
+  const boundaries = new Map<string, unknown>();
+  const principals = new Map<string, unknown>();
+  const agents = new Map<string, unknown>();
+  const runtimeBindings = new Map<string, unknown>();
+  const memberships = new Map<string, unknown>();
+  for (const event of events) {
+    const payload = event.payload as Record<string, unknown>;
+    if (event.type === "ProjectCreated" && isRecord(payload.project)) projects.set(String(payload.project.id), payload.project);
+    if (event.type === "ObjectiveCreated" && isRecord(payload.objective)) objectives.set(String(payload.objective.id), payload.objective);
+    if (event.type === "BoundaryCreated" && isRecord(payload.boundary)) boundaries.set(String(payload.boundary.id), payload.boundary);
+    if (event.type === "BoundarySuperseded") {
+      const previous = boundaries.get(String(payload.previousBoundaryId));
+      if (isRecord(previous)) boundaries.set(String(payload.previousBoundaryId), { ...previous, status: "superseded", supersededBy: payload.nextBoundaryId });
+    }
+    if (event.type === "PrincipalRegistered" && isRecord(payload.principal)) principals.set(String(payload.principal.id), payload.principal);
+    if (event.type === "AgentRegistered" && isRecord(payload.agent)) agents.set(String(payload.agent.id), payload.agent);
+    if (event.type === "RuntimeBindingCreated" && isRecord(payload.runtimeBinding)) runtimeBindings.set(String(payload.runtimeBinding.id), payload.runtimeBinding);
+    if (event.type === "RuntimeBindingRevoked") {
+      const binding = runtimeBindings.get(String(payload.runtimeBindingId));
+      if (isRecord(binding)) runtimeBindings.set(String(payload.runtimeBindingId), { ...binding, status: "revoked" });
+    }
+    if (event.type === "ProjectMemberAdded" && isRecord(payload.membership)) memberships.set(String(payload.membership.id), payload.membership);
+  }
+  return {
+    projects: [...projects.values()],
+    objectives: [...objectives.values()],
+    boundaries: [...boundaries.values()],
+    principals: [...principals.values()],
+    agents: [...agents.values()],
+    runtimeBindings: [...runtimeBindings.values()],
+    memberships: [...memberships.values()],
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object");
 }

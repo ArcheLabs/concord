@@ -32,6 +32,11 @@ export interface TraceEnvironment {
 export interface TraceInitialState {
   actors: unknown[];
   goals: unknown[];
+  projects?: unknown[];
+  objectives?: unknown[];
+  boundaries?: unknown[];
+  principals?: unknown[];
+  agents?: unknown[];
   knowledgeVersion?: unknown;
   stateView?: unknown;
   policies?: unknown[];
@@ -55,6 +60,14 @@ export interface TraceSnapshots {
   incentiveIntents?: unknown[];
   governanceIntents?: unknown[];
   humanRequests?: unknown[];
+  projects?: unknown[];
+  objectives?: unknown[];
+  boundaries?: unknown[];
+  principals?: unknown[];
+  agents?: unknown[];
+  runtimeBindings?: unknown[];
+  memberships?: unknown[];
+  projectBootstraps?: unknown[];
 }
 
 export interface TraceFinalState {
@@ -62,6 +75,7 @@ export interface TraceFinalState {
   latestKnowledgeVersion?: unknown;
   eventRoot?: Hash;
   stateHash?: Hash;
+  projectState?: unknown;
 }
 
 export interface TraceVerificationReport {
@@ -140,6 +154,7 @@ export interface TraceReplayResult {
   latestKnowledgeVersion?: unknown;
   eventRoot?: Hash;
   stateHash?: Hash;
+  projectState?: unknown;
   errors: ReplayError[];
 }
 
