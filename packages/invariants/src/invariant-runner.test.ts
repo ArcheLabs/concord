@@ -29,6 +29,25 @@ describe("invariant runner", () => {
     expect(report.ok).toBe(false);
     expect(report.results[0]?.status).toBe("fail");
   });
+
+  it.each([
+    ["action.no-work-without-policy", (trace: ProtocolTrace) => { trace.snapshots.policyDecisions = []; trace.snapshots.decisionRecords = []; }],
+    ["action.high-risk-no-direct", (trace: ProtocolTrace) => { trace.snapshots.actions[0] = { id: "action_1", riskLevel: "high" }; trace.snapshots.policyDecisions[0] = { id: "pd_1", actionId: "action_1", result: "approved_directly" }; }],
+    ["context.submission.requires-receipt", (trace: ProtocolTrace) => { delete (trace.snapshots.submissions[0] as Record<string, unknown>).contextReceipt; }],
+    ["knowledge.version.has-hash", (trace: ProtocolTrace) => { trace.snapshots.knowledgeVersions[0] = { id: "kv_1", commitIds: ["commit_1"] }; }],
+    ["work.submission-has-execution-receipt", (trace: ProtocolTrace) => { delete (trace.snapshots.submissions[0] as Record<string, unknown>).executionReceipt; }],
+    ["work.accepted-requires-review", (trace: ProtocolTrace) => { trace.snapshots.reviews = []; }],
+    ["review.target-exists", (trace: ProtocolTrace) => { trace.snapshots.reviews[0] = { id: "review_1", reviewerId: "reviewer_1", target: { kind: "submission", submissionId: "missing" } }; }],
+    ["coordinator.no-policy-bypass", (trace: ProtocolTrace) => { trace.snapshots.policyDecisions = []; }],
+  ])("fails %s for invalid trace", async (id, mutate) => {
+    const trace = validTrace();
+    mutate(trace);
+
+    const report = await new DefaultInvariantRunner().run(trace, { include: [id] });
+
+    expect(report.ok).toBe(false);
+    expect(report.results[0]?.status).toBe("fail");
+  });
 });
 
 function validTrace(): ProtocolTrace {

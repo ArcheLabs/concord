@@ -32,4 +32,28 @@ describe("scenario runner", () => {
       await rm(dir, { recursive: true, force: true });
     }
   });
+
+  it("runs polkadot adoption scenario", async () => {
+    const result = await new DefaultScenarioRunner().run({
+      scenarioPath: "../../examples/scenarios/polkadot-adoption.yaml",
+      verify: true,
+      replay: true,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.trace.scenario?.scenarioId).toBe("polkadot-adoption-research-loop");
+  });
+
+  it("keeps deterministic scenario outputs stable", async () => {
+    const runner = new DefaultScenarioRunner();
+    const first = await runner.run({ scenarioPath: "../../examples/scenarios/simple-loop.yaml", verify: true, replay: true });
+    const second = await runner.run({ scenarioPath: "../../examples/scenarios/simple-loop.yaml", verify: true, replay: true });
+
+    expect(first.trace.events.map((event) => event.type)).toEqual(second.trace.events.map((event) => event.type));
+    expect(first.trace.finalState.stateHash).toEqual(second.trace.finalState.stateHash);
+    expect(first.trace.finalState.latestKnowledgeVersion).toEqual(second.trace.finalState.latestKnowledgeVersion);
+    expect(first.verification?.invariantResults.map((result) => [result.id, result.status])).toEqual(
+      second.verification?.invariantResults.map((result) => [result.id, result.status]),
+    );
+  });
 });

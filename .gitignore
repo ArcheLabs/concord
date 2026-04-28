@@ -5,6 +5,7 @@ agent/
 .turbo/
 .cache/
 data/
+traces/
 *.tsbuildinfo
 *.db
 *.db-shm

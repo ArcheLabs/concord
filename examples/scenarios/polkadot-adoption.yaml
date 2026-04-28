@@ -77,7 +77,7 @@ loop:
   - type: create_knowledge_candidate
     actor: reviewer-agent
     layer: formal
-    summary: Polkadot onboarding has three bottlenecks: fragmented docs, unclear deployment paths, and high conceptual load.
+    summary: "Polkadot onboarding has three bottlenecks: fragmented docs, unclear deployment paths, and high conceptual load."
   - type: commit_knowledge
     actor: reviewer-agent
 
