@@ -17,6 +17,7 @@
     "@concord/knowledge": "workspace:*",
     "@concord/negotiation": "workspace:*",
     "@concord/policy": "workspace:*",
+    "@concord/project": "workspace:*",
     "@concord/state": "workspace:*",
     "@concord/workflow": "workspace:*"
   },

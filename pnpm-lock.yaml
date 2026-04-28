@@ -285,6 +285,9 @@ importers:
       '@concord/policy':
         specifier: workspace:*
         version: link:../policy
+      '@concord/project':
+        specifier: workspace:*
+        version: link:../project
       '@concord/state':
         specifier: workspace:*
         version: link:../state
