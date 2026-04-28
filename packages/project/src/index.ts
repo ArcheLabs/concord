@@ -1,5 +1,16 @@
 import { DatabaseSync } from "node:sqlite";
-import { sha256, type ArtifactRef, type DecisionRecordId, type Hash, type Version, type Timestamp } from "@concord/foundation";
+import {
+  createEvent,
+  makeId,
+  nowTimestamp,
+  sha256,
+  version,
+  type ArtifactRef,
+  type DecisionRecordId,
+  type Hash,
+  type Version,
+  type Timestamp,
+} from "@concord/foundation";
 import type {
   AgentId,
   BoundaryId,
@@ -12,7 +23,7 @@ import type {
   RuntimeBindingId,
   AddressBindingId,
 } from "@concord/foundation";
-import type { ConcordRole, DecisionFlow, StateView } from "@concord/core";
+import type { ConcordRole, DecisionFlow, EventStore, StateView } from "@concord/core";
 
 export type {
   AgentId,
@@ -480,6 +491,699 @@ export interface ProjectStore {
   getMembership(id: MembershipId): Promise<ProjectMembership | null>;
   listMemberships(projectId: ProjectId): Promise<ProjectMembership[]>;
   findMembership(input: FindMembershipInput): Promise<ProjectMembership | null>;
+}
+
+export interface CreateBoundaryInput {
+  projectId?: ProjectId;
+  description?: string;
+  prohibitedActions?: BoundaryActionRule[];
+  riskRules?: BoundaryRiskRule[];
+  escalationRules?: BoundaryEscalationRule[];
+  permissionRules?: BoundaryPermissionRule[];
+  defaultRiskLevel?: RiskLevel;
+  createdBy: PrincipalId | AgentId;
+}
+
+export interface CreateProjectInput {
+  slug: string;
+  name: string;
+  description?: string;
+  sponsorPrincipalId: PrincipalId;
+  boundary: CreateBoundaryInput;
+  protocol?: Partial<ProjectProtocolConfig>;
+  governance?: ProjectGovernanceConfig;
+  incentive?: ProjectIncentiveConfig;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ActivateProjectInput {
+  projectId: ProjectId;
+  actorId: PrincipalId | AgentId;
+  reason?: string;
+}
+
+export interface PauseProjectInput {
+  projectId: ProjectId;
+  actorId: PrincipalId | AgentId;
+  reason: string;
+}
+
+export interface ArchiveProjectInput {
+  projectId: ProjectId;
+  actorId: PrincipalId | AgentId;
+  reason: string;
+}
+
+export interface BootstrapProjectInput {
+  projectId: ProjectId;
+  actorId: PrincipalId;
+  initialKnowledgeRefs: ArtifactRef[];
+  initialStateRefs?: ArtifactRef[];
+  initialPolicyRefs?: ArtifactRef[];
+  initialSkillRefs?: ArtifactRef[];
+  initialProtocolRefs?: ArtifactRef[];
+}
+
+export interface CreateObjectiveInput {
+  projectId: ProjectId;
+  parentObjectiveId?: ObjectiveId;
+  title: string;
+  description: string;
+  kind: ObjectiveKind;
+  timebox?: ObjectiveTimebox;
+  successCriteria: AcceptanceCriterion[];
+  forbiddenOutcomes?: string[];
+  priority?: number;
+  createdBy: PrincipalId | AgentId;
+}
+
+export interface ActivateObjectiveInput {
+  objectiveId: ObjectiveId;
+  actorId: PrincipalId | AgentId;
+}
+
+export interface SetPrimaryObjectiveInput {
+  projectId: ProjectId;
+  objectiveId: ObjectiveId;
+  actorId: PrincipalId | AgentId;
+}
+
+export interface UpdateObjectiveInput {
+  objectiveId: ObjectiveId;
+  actorId: PrincipalId | AgentId;
+  patch: Partial<Pick<Objective, "title" | "description" | "timebox" | "successCriteria" | "forbiddenOutcomes" | "priority">>;
+}
+
+export interface CloseObjectiveInput {
+  objectiveId: ObjectiveId;
+  actorId: PrincipalId | AgentId;
+  status: Extract<ObjectiveStatus, "succeeded" | "failed" | "superseded" | "abandoned">;
+  reason: string;
+}
+
+export interface ActivateBoundaryInput {
+  boundaryId: BoundaryId;
+  actorId: PrincipalId | AgentId;
+}
+
+export interface ReviseBoundaryInput {
+  projectId: ProjectId;
+  previousBoundaryId: BoundaryId;
+  actorId: PrincipalId | AgentId;
+  nextBoundary: Omit<CreateBoundaryInput, "projectId" | "createdBy">;
+  decisionRecordId?: DecisionRecordId;
+  reason: string;
+}
+
+export interface EvaluateBoundaryActionInput {
+  projectId: ProjectId;
+  actionType: string;
+  actor?: PrincipalId | AgentId;
+  roles?: ConcordRole[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface RegisterPrincipalInput {
+  kind: PrincipalKind;
+  displayName: string;
+  description?: string;
+  identityBindings?: IdentityBinding[];
+  addressBindings?: AddressBinding[];
+  operator?: PrincipalOperatorInfo;
+}
+
+export interface BindAddressInput {
+  principalId: PrincipalId;
+  chain: string;
+  address: string;
+  publicKey?: string;
+  proof?: ArtifactRef;
+  status?: "pending" | "verified";
+}
+
+export interface ChangePrincipalStatusInput {
+  principalId: PrincipalId;
+  nextStatus: PrincipalStatus;
+  reason: string;
+}
+
+export interface RegisterAgentInput {
+  principalId: PrincipalId;
+  displayName: string;
+  description?: string;
+  capabilities?: CapabilityDescriptor[];
+  availability?: AvailabilityDescriptor;
+  costPreference?: CostPreference;
+  eligibleRoles?: ConcordRole[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface ChangeAgentStatusInput {
+  agentId: AgentId;
+  nextStatus: AgentStatus;
+  reason: string;
+}
+
+export interface CreateRuntimeBindingInput {
+  agentId: AgentId;
+  runtimeKind: RuntimeKind;
+  runtimeAdapterId: string;
+  capabilities?: CapabilityDescriptor[];
+  permissionScope?: RuntimePermissionScope;
+  endpoint?: RuntimeEndpoint;
+}
+
+export interface RevokeRuntimeBindingInput {
+  runtimeBindingId: RuntimeBindingId;
+  reason: string;
+}
+
+export interface AddProjectMemberInput {
+  projectId: ProjectId;
+  principalId: PrincipalId;
+  agentId?: AgentId;
+  roles: ConcordRole[];
+  source: "sponsor" | "manual" | "policy" | "governance" | "scenario";
+}
+
+export interface ChangeMembershipStatusInput {
+  membershipId: MembershipId;
+  nextStatus: MembershipStatus;
+  reason: string;
+}
+
+export class PrincipalService {
+  constructor(
+    private readonly store: ProjectStore,
+    private readonly eventStore?: EventStore,
+  ) {}
+
+  async registerPrincipal(input: RegisterPrincipalInput): Promise<Principal> {
+    assertRequired(input.displayName, "Principal displayName");
+    if (!input.identityBindings?.length && !input.addressBindings?.length && input.kind !== "unknown" && input.kind !== "service") {
+      throw new ProjectError("PRINCIPAL_NOT_ACTIVE", "Principal requires identity/address binding unless kind is unknown or service");
+    }
+    const now = nowTimestamp();
+    const principal: Principal = {
+      id: makeId("PrincipalId"),
+      kind: input.kind,
+      displayName: input.displayName,
+      status: "active",
+      identityBindings: input.identityBindings ?? [],
+      addressBindings: input.addressBindings ?? [],
+      createdAt: now,
+      updatedAt: now,
+      ...(input.description ? { description: input.description } : {}),
+      ...(input.operator ? { operator: input.operator } : {}),
+    };
+    await this.store.savePrincipal(principal);
+    await this.eventStore?.append(createEvent({ type: "PrincipalRegistered", payload: { principal } satisfies PrincipalRegisteredPayload }));
+    return principal;
+  }
+
+  async bindAddress(input: BindAddressInput): Promise<AddressBinding> {
+    const principal = await requirePrincipal(this.store, input.principalId);
+    const now = nowTimestamp();
+    const addressBinding: AddressBinding = {
+      id: makeId("AddressBindingId"),
+      chain: input.chain,
+      address: input.address,
+      status: input.status ?? "pending",
+      createdAt: now,
+      ...(input.publicKey ? { publicKey: input.publicKey } : {}),
+      ...(input.proof ? { proof: input.proof } : {}),
+      ...(input.status === "verified" ? { verifiedAt: now } : {}),
+    };
+    const updated = { ...principal, addressBindings: [...principal.addressBindings, addressBinding], updatedAt: now };
+    await this.store.savePrincipal(updated);
+    await this.eventStore?.append(
+      createEvent({ type: "PrincipalAddressBound", payload: { principalId: principal.id, addressBinding } satisfies PrincipalAddressBoundPayload }),
+    );
+    return addressBinding;
+  }
+
+  async changePrincipalStatus(input: ChangePrincipalStatusInput): Promise<Principal> {
+    const principal = await requirePrincipal(this.store, input.principalId);
+    const updated = { ...principal, status: input.nextStatus, updatedAt: nowTimestamp() };
+    await this.store.savePrincipal(updated);
+    await this.eventStore?.append(
+      createEvent({
+        type: "PrincipalStatusChanged",
+        payload: { principalId: principal.id, previousStatus: principal.status, nextStatus: input.nextStatus, reason: input.reason } satisfies PrincipalStatusChangedPayload,
+      }),
+    );
+    return updated;
+  }
+
+  getPrincipal(principalId: PrincipalId): Promise<Principal | null> {
+    return this.store.getPrincipal(principalId);
+  }
+
+  listPrincipals(input?: ListPrincipalsInput): Promise<Principal[]> {
+    return this.store.listPrincipals(input);
+  }
+}
+
+export class AgentService {
+  constructor(
+    private readonly store: ProjectStore,
+    private readonly eventStore?: EventStore,
+  ) {}
+
+  async registerAgent(input: RegisterAgentInput): Promise<Agent> {
+    const principal = await requirePrincipal(this.store, input.principalId);
+    if (principal.status !== "active") throw new ProjectError("PRINCIPAL_NOT_ACTIVE", `Principal is not active: ${principal.id}`);
+    assertRequired(input.displayName, "Agent displayName");
+    for (const capability of input.capabilities ?? []) assertRequired(capability.name, "Capability name");
+    const now = nowTimestamp();
+    const agent: Agent = {
+      id: makeId("AgentId"),
+      principalId: input.principalId,
+      displayName: input.displayName,
+      status: "active",
+      capabilities: input.capabilities ?? [],
+      eligibleRoles: input.eligibleRoles ?? [],
+      createdAt: now,
+      updatedAt: now,
+      ...(input.description ? { description: input.description } : {}),
+      ...(input.availability ? { availability: input.availability } : {}),
+      ...(input.costPreference ? { costPreference: input.costPreference } : {}),
+      ...(input.metadata ? { metadata: input.metadata } : {}),
+    };
+    await this.store.saveAgent(agent);
+    await this.eventStore?.append(createEvent({ type: "AgentRegistered", payload: { agent } satisfies AgentRegisteredPayload }));
+    return agent;
+  }
+
+  async changeAgentStatus(input: ChangeAgentStatusInput): Promise<Agent> {
+    const agent = await requireAgent(this.store, input.agentId);
+    const updated = { ...agent, status: input.nextStatus, updatedAt: nowTimestamp() };
+    await this.store.saveAgent(updated);
+    await this.eventStore?.append(
+      createEvent({
+        type: "AgentStatusChanged",
+        payload: { agentId: agent.id, principalId: agent.principalId, previousStatus: agent.status, nextStatus: input.nextStatus, reason: input.reason } satisfies AgentStatusChangedPayload,
+      }),
+    );
+    return updated;
+  }
+
+  async createRuntimeBinding(input: CreateRuntimeBindingInput): Promise<RuntimeBinding> {
+    const agent = await requireAgent(this.store, input.agentId);
+    if (agent.status !== "active") throw new ProjectError("AGENT_NOT_ACTIVE", `Agent is not active: ${agent.id}`);
+    assertRequired(input.runtimeAdapterId, "Runtime adapter id");
+    const now = nowTimestamp();
+    const runtimeBinding: RuntimeBinding = {
+      id: makeId("RuntimeBindingId"),
+      agentId: agent.id,
+      principalId: agent.principalId,
+      runtimeKind: input.runtimeKind,
+      runtimeAdapterId: input.runtimeAdapterId,
+      status: "active",
+      capabilities: input.capabilities ?? [],
+      permissionScope: input.permissionScope ?? { allowedNetwork: false, allowedFileSystem: false },
+      createdAt: now,
+      updatedAt: now,
+      ...(input.endpoint ? { endpoint: input.endpoint } : {}),
+    };
+    await this.store.saveRuntimeBinding(runtimeBinding);
+    await this.store.saveAgent({ ...agent, defaultRuntimeBindingId: agent.defaultRuntimeBindingId ?? runtimeBinding.id, updatedAt: now });
+    await this.eventStore?.append(
+      createEvent({ type: "RuntimeBindingCreated", payload: { runtimeBinding } satisfies RuntimeBindingCreatedPayload }),
+    );
+    return runtimeBinding;
+  }
+
+  async revokeRuntimeBinding(input: RevokeRuntimeBindingInput): Promise<RuntimeBinding> {
+    const binding = await requireRuntimeBinding(this.store, input.runtimeBindingId);
+    const updated = { ...binding, status: "revoked" as const, revokedAt: nowTimestamp(), updatedAt: nowTimestamp() };
+    await this.store.saveRuntimeBinding(updated);
+    await this.eventStore?.append(
+      createEvent({
+        type: "RuntimeBindingRevoked",
+        payload: { runtimeBindingId: binding.id, agentId: binding.agentId, principalId: binding.principalId, reason: input.reason } satisfies RuntimeBindingRevokedPayload,
+      }),
+    );
+    return updated;
+  }
+
+  async addProjectMember(input: AddProjectMemberInput): Promise<ProjectMembership> {
+    await requireProject(this.store, input.projectId);
+    const principal = await requirePrincipal(this.store, input.principalId);
+    if (principal.status !== "active") throw new ProjectError("PRINCIPAL_NOT_ACTIVE", `Principal is not active: ${principal.id}`);
+    const agent = input.agentId ? await requireAgent(this.store, input.agentId) : null;
+    if (agent && agent.principalId !== input.principalId) {
+      throw new ProjectError("AGENT_PRINCIPAL_MISMATCH", "Membership agent must belong to the membership principal");
+    }
+    if (agent && !["sponsor", "manual"].includes(input.source)) {
+      const ineligible = input.roles.find((role) => !agent.eligibleRoles.includes(role));
+      if (ineligible) throw new ProjectError("ROLE_NOT_ELIGIBLE", `Agent is not eligible for role ${ineligible}`);
+    }
+    const now = nowTimestamp();
+    const membership: ProjectMembership = {
+      id: makeId("MembershipId"),
+      projectId: input.projectId,
+      principalId: input.principalId,
+      status: "active",
+      roles: input.roles,
+      joinedAt: now,
+      updatedAt: now,
+      source: input.source,
+      ...(input.agentId ? { agentId: input.agentId } : {}),
+    };
+    await this.store.saveMembership(membership);
+    await this.eventStore?.append(createEvent({ type: "ProjectMemberAdded", payload: { membership } satisfies ProjectMemberAddedPayload }));
+    return membership;
+  }
+
+  async changeMembershipStatus(input: ChangeMembershipStatusInput): Promise<ProjectMembership> {
+    const membership = await requireMembership(this.store, input.membershipId);
+    const updated = {
+      ...membership,
+      status: input.nextStatus,
+      updatedAt: nowTimestamp(),
+      ...(["left", "removed"].includes(input.nextStatus) ? { leftAt: nowTimestamp() } : {}),
+    };
+    await this.store.saveMembership(updated);
+    await this.eventStore?.append(
+      createEvent({
+        type: "ProjectMemberStatusChanged",
+        payload: {
+          membershipId: membership.id,
+          projectId: membership.projectId,
+          previousStatus: membership.status,
+          nextStatus: input.nextStatus,
+          reason: input.reason,
+        } satisfies ProjectMemberStatusChangedPayload,
+      }),
+    );
+    return updated;
+  }
+
+  getAgent(agentId: AgentId): Promise<Agent | null> {
+    return this.store.getAgent(agentId);
+  }
+
+  listAgents(input?: ListAgentsInput): Promise<Agent[]> {
+    return this.store.listAgents(input);
+  }
+
+  listProjectMembers(projectId: ProjectId): Promise<ProjectMembership[]> {
+    return this.store.listMemberships(projectId);
+  }
+}
+
+export class ProjectService {
+  constructor(
+    private readonly store: ProjectStore,
+    private readonly eventStore?: EventStore,
+  ) {}
+
+  async createProject(input: CreateProjectInput): Promise<Project> {
+    assertValidProjectSlug(input.slug);
+    assertRequired(input.name, "Project name");
+    await requirePrincipal(this.store, input.sponsorPrincipalId);
+    if (await this.store.getProjectBySlug(input.slug)) {
+      throw new ProjectError("PROJECT_SLUG_ALREADY_EXISTS", `Project slug already exists: ${input.slug}`);
+    }
+    const now = nowTimestamp();
+    const projectId = makeId("ProjectId");
+    const boundary = createBoundaryRecord({ ...input.boundary, projectId, createdBy: input.boundary.createdBy ?? input.sponsorPrincipalId }, "active");
+    const project: Project = {
+      id: projectId,
+      slug: input.slug,
+      name: input.name,
+      status: "draft",
+      sponsorPrincipalId: input.sponsorPrincipalId,
+      boundaryId: boundary.id,
+      protocol: { version: input.protocol?.version ?? version("1.0.0"), traceRequired: input.protocol?.traceRequired ?? true },
+      createdAt: now,
+      updatedAt: now,
+      ...(input.description ? { description: input.description } : {}),
+      ...(input.governance ? { governance: input.governance } : {}),
+      ...(input.incentive ? { incentive: input.incentive } : {}),
+      ...(input.metadata ? { metadata: input.metadata } : {}),
+    };
+    await this.store.saveBoundary(boundary);
+    await this.store.saveProject(project);
+    await this.eventStore?.append(createEvent({ type: "BoundaryCreated", payload: { boundary } satisfies BoundaryCreatedPayload }));
+    await this.eventStore?.append(createEvent({ type: "ProjectCreated", correlationId: project.id, payload: { project } satisfies ProjectCreatedPayload }));
+    return project;
+  }
+
+  async activateProject(input: ActivateProjectInput): Promise<Project> {
+    const project = await requireProject(this.store, input.projectId);
+    if (project.status === "archived") throw new ProjectError("PROJECT_ALREADY_ARCHIVED", `Project is archived: ${project.id}`);
+    const objective = project.primaryObjectiveId ? await this.store.getObjective(project.primaryObjectiveId) : null;
+    if (!objective || objective.status !== "active") throw new ProjectError("PROJECT_REQUIRES_ACTIVE_OBJECTIVE", "Project activation requires active primary objective");
+    const boundary = await this.store.getActiveBoundary(project.id);
+    if (!boundary) throw new ProjectError("PROJECT_REQUIRES_ACTIVE_BOUNDARY", "Project activation requires active boundary");
+    const updated = { ...project, status: "active" as const, updatedAt: nowTimestamp(), boundaryId: boundary.id };
+    await this.store.saveProject(updated);
+    await this.eventStore?.append(
+      createEvent({
+        type: "ProjectActivated",
+        correlationId: project.id,
+        payload: { projectId: project.id, activatedBy: input.actorId, ...(input.reason ? { reason: input.reason } : {}) } satisfies ProjectActivatedPayload,
+      }),
+    );
+    return updated;
+  }
+
+  async pauseProject(input: PauseProjectInput): Promise<Project> {
+    const project = await requireProject(this.store, input.projectId);
+    const updated = { ...project, status: "paused" as const, updatedAt: nowTimestamp() };
+    await this.store.saveProject(updated);
+    await this.eventStore?.append(
+      createEvent({ type: "ProjectPaused", correlationId: project.id, payload: { projectId: project.id, pausedBy: input.actorId, reason: input.reason } satisfies ProjectPausedPayload }),
+    );
+    return updated;
+  }
+
+  async archiveProject(input: ArchiveProjectInput): Promise<Project> {
+    const project = await requireProject(this.store, input.projectId);
+    const now = nowTimestamp();
+    const updated = { ...project, status: "archived" as const, updatedAt: now, archivedAt: now };
+    await this.store.saveProject(updated);
+    await this.eventStore?.append(
+      createEvent({ type: "ProjectArchived", correlationId: project.id, payload: { projectId: project.id, archivedBy: input.actorId, reason: input.reason } satisfies ProjectArchivedPayload }),
+    );
+    return updated;
+  }
+
+  async bootstrapProject(input: BootstrapProjectInput): Promise<ProjectBootstrap> {
+    const project = await requireProject(this.store, input.projectId);
+    const bootstrap: ProjectBootstrap = {
+      id: makeId("ProjectBootstrapId"),
+      projectId: project.id,
+      initialKnowledgeRefs: input.initialKnowledgeRefs,
+      createdBy: input.actorId,
+      createdAt: nowTimestamp(),
+      ...(input.initialStateRefs ? { initialStateRefs: input.initialStateRefs } : {}),
+      ...(input.initialPolicyRefs ? { initialPolicyRefs: input.initialPolicyRefs } : {}),
+      ...(input.initialSkillRefs ? { initialSkillRefs: input.initialSkillRefs } : {}),
+      ...(input.initialProtocolRefs ? { initialProtocolRefs: input.initialProtocolRefs } : {}),
+    };
+    await this.store.saveProject({ ...project, bootstrapId: bootstrap.id, updatedAt: nowTimestamp() });
+    await this.eventStore?.append(createEvent({ type: "ProjectBootstrapped", correlationId: project.id, payload: { bootstrap } satisfies ProjectBootstrappedPayload }));
+    return bootstrap;
+  }
+
+  getProject(projectId: ProjectId): Promise<Project | null> {
+    return this.store.getProject(projectId);
+  }
+
+  getProjectBySlug(slug: string): Promise<Project | null> {
+    return this.store.getProjectBySlug(slug);
+  }
+
+  listProjects(input?: ListProjectsInput): Promise<Project[]> {
+    return this.store.listProjects(input);
+  }
+}
+
+export class ObjectiveService {
+  constructor(
+    private readonly store: ProjectStore,
+    private readonly eventStore?: EventStore,
+  ) {}
+
+  async createObjective(input: CreateObjectiveInput): Promise<Objective> {
+    await requireProject(this.store, input.projectId);
+    validateObjectiveShape(input);
+    if (input.parentObjectiveId) {
+      const parent = await requireObjective(this.store, input.parentObjectiveId);
+      if (parent.projectId !== input.projectId) throw new ProjectError("OBJECTIVE_PARENT_PROJECT_MISMATCH", "Parent objective must belong to the same project");
+    }
+    const now = nowTimestamp();
+    const objective: Objective = {
+      id: makeId("ObjectiveId"),
+      projectId: input.projectId,
+      title: input.title,
+      description: input.description,
+      kind: input.kind,
+      status: "draft",
+      successCriteria: input.successCriteria,
+      createdBy: input.createdBy,
+      createdAt: now,
+      updatedAt: now,
+      ...(input.parentObjectiveId ? { parentObjectiveId: input.parentObjectiveId } : {}),
+      ...(input.timebox ? { timebox: input.timebox } : {}),
+      ...(input.forbiddenOutcomes ? { forbiddenOutcomes: input.forbiddenOutcomes } : {}),
+      ...(input.priority === undefined ? {} : { priority: input.priority }),
+    };
+    await assertNoObjectiveCycle(this.store, objective);
+    await this.store.saveObjective(objective);
+    await this.eventStore?.append(createEvent({ type: "ObjectiveCreated", correlationId: input.projectId, payload: { objective } satisfies ObjectiveCreatedPayload }));
+    return objective;
+  }
+
+  async activateObjective(input: ActivateObjectiveInput): Promise<Objective> {
+    const objective = await requireObjective(this.store, input.objectiveId);
+    if (["succeeded", "failed", "superseded", "abandoned"].includes(objective.status)) {
+      throw new ProjectError("OBJECTIVE_NOT_ACTIVE", `Closed objective cannot be activated: ${objective.id}`);
+    }
+    const updated = { ...objective, status: "active" as const, updatedAt: nowTimestamp() };
+    await this.store.saveObjective(updated);
+    await this.eventStore?.append(
+      createEvent({ type: "ObjectiveActivated", correlationId: objective.projectId, payload: { objectiveId: objective.id, projectId: objective.projectId, activatedBy: input.actorId } satisfies ObjectiveActivatedPayload }),
+    );
+    return updated;
+  }
+
+  async setPrimaryObjective(input: SetPrimaryObjectiveInput): Promise<Project> {
+    const project = await requireProject(this.store, input.projectId);
+    const objective = await requireObjective(this.store, input.objectiveId);
+    if (objective.projectId !== project.id) throw new ProjectError("OBJECTIVE_PARENT_PROJECT_MISMATCH", "Primary objective must belong to project");
+    if (objective.status !== "active") throw new ProjectError("OBJECTIVE_NOT_ACTIVE", "Primary objective must be active");
+    const updated = { ...project, primaryObjectiveId: objective.id, updatedAt: nowTimestamp() };
+    await this.store.saveProject(updated);
+    await this.eventStore?.append(
+      createEvent({ type: "ProjectPrimaryObjectiveSet", correlationId: project.id, payload: { projectId: project.id, objectiveId: objective.id, setBy: input.actorId } satisfies ProjectPrimaryObjectiveSetPayload }),
+    );
+    return updated;
+  }
+
+  async updateObjective(input: UpdateObjectiveInput): Promise<Objective> {
+    const objective = await requireObjective(this.store, input.objectiveId);
+    const updated = { ...objective, ...input.patch, updatedAt: nowTimestamp() };
+    validateObjectiveShape(updated);
+    await this.store.saveObjective(updated);
+    await this.eventStore?.append(
+      createEvent({ type: "ObjectiveUpdated", correlationId: objective.projectId, payload: { objectiveId: objective.id, projectId: objective.projectId, patch: input.patch } satisfies ObjectiveUpdatedPayload }),
+    );
+    return updated;
+  }
+
+  async closeObjective(input: CloseObjectiveInput): Promise<Objective> {
+    const objective = await requireObjective(this.store, input.objectiveId);
+    const updated = { ...objective, status: input.status, updatedAt: nowTimestamp(), closedAt: nowTimestamp() };
+    await this.store.saveObjective(updated);
+    await this.eventStore?.append(
+      createEvent({ type: "ObjectiveClosed", correlationId: objective.projectId, payload: { objectiveId: objective.id, projectId: objective.projectId, status: input.status, reason: input.reason } satisfies ObjectiveClosedPayload }),
+    );
+    return updated;
+  }
+
+  getObjective(objectiveId: ObjectiveId): Promise<Objective | null> {
+    return this.store.getObjective(objectiveId);
+  }
+
+  listObjectives(projectId: ProjectId): Promise<Objective[]> {
+    return this.store.listObjectives(projectId);
+  }
+}
+
+export class BoundaryService {
+  constructor(
+    private readonly store: ProjectStore,
+    private readonly eventStore?: EventStore,
+  ) {}
+
+  async createBoundary(input: CreateBoundaryInput): Promise<Boundary> {
+    const boundary = createBoundaryRecord(input, "draft");
+    if (input.projectId) await requireProject(this.store, input.projectId);
+    await this.store.saveBoundary(boundary);
+    await this.eventStore?.append(createEvent({ type: "BoundaryCreated", correlationId: boundary.projectId, payload: { boundary } satisfies BoundaryCreatedPayload }));
+    return boundary;
+  }
+
+  async activateBoundary(input: ActivateBoundaryInput): Promise<Boundary> {
+    const boundary = await requireBoundary(this.store, input.boundaryId);
+    const updated = { ...boundary, status: "active" as const, updatedAt: nowTimestamp() };
+    await this.store.saveBoundary(updated);
+    await this.eventStore?.append(
+      createEvent({ type: "BoundaryActivated", correlationId: boundary.projectId, payload: { boundaryId: boundary.id, projectId: boundary.projectId, activatedBy: input.actorId } satisfies BoundaryActivatedPayload }),
+    );
+    return updated;
+  }
+
+  async reviseBoundary(input: ReviseBoundaryInput): Promise<Boundary> {
+    const project = await requireProject(this.store, input.projectId);
+    const previous = await requireBoundary(this.store, input.previousBoundaryId);
+    if (previous.projectId !== project.id) throw new ProjectError("BOUNDARY_NOT_FOUND", "Previous boundary does not belong to project");
+    const next = createBoundaryRecord({ ...input.nextBoundary, projectId: project.id, createdBy: input.actorId }, "active");
+    const superseded = { ...previous, status: "superseded" as const, supersededBy: next.id, updatedAt: nowTimestamp() };
+    await this.store.saveBoundary(superseded);
+    await this.store.saveBoundary(next);
+    await this.store.saveProject({ ...project, boundaryId: next.id, updatedAt: nowTimestamp() });
+    await this.eventStore?.append(
+      createEvent({
+        type: "BoundarySuperseded",
+        correlationId: project.id,
+        payload: {
+          previousBoundaryId: previous.id,
+          nextBoundaryId: next.id,
+          projectId: project.id,
+          ...(input.decisionRecordId ? { decisionRecordId: input.decisionRecordId } : {}),
+          reason: input.reason,
+        } satisfies BoundarySupersededPayload,
+      }),
+    );
+    return next;
+  }
+
+  async evaluateAction(input: EvaluateBoundaryActionInput): Promise<BoundaryEvaluation> {
+    const boundary = await this.store.getActiveBoundary(input.projectId);
+    if (!boundary) throw new ProjectError("PROJECT_REQUIRES_ACTIVE_BOUNDARY", `No active boundary for project ${input.projectId}`);
+    const matchedRules: string[] = [];
+    const reasons: string[] = [];
+    let allowed = true;
+    let riskLevel = boundary.defaultRiskLevel;
+    let requiredFlow: BoundaryEvaluation["requiredFlow"];
+
+    for (const rule of boundary.prohibitedActions.filter((rule) => rule.actionType === input.actionType)) {
+      matchedRules.push(rule.id);
+      reasons.push(rule.reason);
+      if (rule.effect === "deny") allowed = false;
+    }
+    for (const rule of boundary.permissionRules.filter((rule) => rule.actionType === input.actionType && subjectMatches(rule, input))) {
+      matchedRules.push(rule.id);
+      reasons.push(rule.reason);
+      if (rule.effect === "deny") allowed = false;
+      if (rule.effect === "allow" && allowed) allowed = true;
+    }
+    for (const rule of boundary.riskRules.filter((rule) => rule.actionType === input.actionType)) {
+      matchedRules.push(rule.id);
+      reasons.push(rule.reason);
+      riskLevel = maxRisk(riskLevel, rule.riskLevel);
+    }
+    for (const rule of boundary.escalationRules.filter((rule) => rule.actionType === input.actionType)) {
+      matchedRules.push(rule.id);
+      reasons.push(rule.reason);
+      requiredFlow = maxFlow(requiredFlow, rule.requiredFlow);
+    }
+
+    return { projectId: input.projectId, boundaryId: boundary.id, actionType: input.actionType, allowed, riskLevel, ...(requiredFlow ? { requiredFlow } : {}), matchedRules, reasons };
+  }
+
+  getBoundary(boundaryId: BoundaryId): Promise<Boundary | null> {
+    return this.store.getBoundary(boundaryId);
+  }
+
+  getActiveBoundary(projectId: ProjectId): Promise<Boundary | null> {
+    return this.store.getActiveBoundary(projectId);
+  }
 }
 
 export class MemoryProjectStore implements ProjectStore {
@@ -964,6 +1668,102 @@ export function validateBoundaryShape(input: Pick<Boundary, "prohibitedActions" 
 export function hashBoundary(boundary: Boundary): Hash {
   const { updatedAt: _updatedAt, ...stableBoundary } = boundary;
   return sha256(stableBoundary);
+}
+
+function createBoundaryRecord(input: CreateBoundaryInput, status: Boundary["status"]): Boundary {
+  const now = nowTimestamp();
+  const boundary: Boundary = {
+    id: makeId("BoundaryId"),
+    projectId: input.projectId ?? makeId("ProjectId", "unscoped_project"),
+    version: version("1.0.0"),
+    status,
+    prohibitedActions: input.prohibitedActions ?? [],
+    riskRules: input.riskRules ?? [],
+    escalationRules: input.escalationRules ?? [],
+    permissionRules: input.permissionRules ?? [],
+    defaultRiskLevel: input.defaultRiskLevel ?? "medium",
+    createdBy: input.createdBy,
+    createdAt: now,
+    updatedAt: now,
+    ...(input.description ? { description: input.description } : {}),
+  };
+  validateBoundaryShape(boundary);
+  return boundary;
+}
+
+async function requireProject(store: ProjectStore, projectId: ProjectId): Promise<Project> {
+  const project = await store.getProject(projectId);
+  if (!project) throw new ProjectError("PROJECT_NOT_FOUND", `Project not found: ${projectId}`);
+  return project;
+}
+
+async function requireObjective(store: ProjectStore, objectiveId: ObjectiveId): Promise<Objective> {
+  const objective = await store.getObjective(objectiveId);
+  if (!objective) throw new ProjectError("OBJECTIVE_NOT_FOUND", `Objective not found: ${objectiveId}`);
+  return objective;
+}
+
+async function requireBoundary(store: ProjectStore, boundaryId: BoundaryId): Promise<Boundary> {
+  const boundary = await store.getBoundary(boundaryId);
+  if (!boundary) throw new ProjectError("BOUNDARY_NOT_FOUND", `Boundary not found: ${boundaryId}`);
+  return boundary;
+}
+
+async function requirePrincipal(store: ProjectStore, principalId: PrincipalId): Promise<Principal> {
+  const principal = await store.getPrincipal(principalId);
+  if (!principal) throw new ProjectError("PRINCIPAL_NOT_FOUND", `Principal not found: ${principalId}`);
+  return principal;
+}
+
+async function requireAgent(store: ProjectStore, agentId: AgentId): Promise<Agent> {
+  const agent = await store.getAgent(agentId);
+  if (!agent) throw new ProjectError("AGENT_NOT_FOUND", `Agent not found: ${agentId}`);
+  return agent;
+}
+
+async function requireRuntimeBinding(store: ProjectStore, runtimeBindingId: RuntimeBindingId): Promise<RuntimeBinding> {
+  const binding = await store.getRuntimeBinding(runtimeBindingId);
+  if (!binding) throw new ProjectError("RUNTIME_BINDING_NOT_FOUND", `Runtime binding not found: ${runtimeBindingId}`);
+  return binding;
+}
+
+async function requireMembership(store: ProjectStore, membershipId: MembershipId): Promise<ProjectMembership> {
+  const membership = await store.getMembership(membershipId);
+  if (!membership) throw new ProjectError("MEMBERSHIP_NOT_FOUND", `Membership not found: ${membershipId}`);
+  return membership;
+}
+
+async function assertNoObjectiveCycle(store: ProjectStore, objective: Objective): Promise<void> {
+  const seen = new Set<string>([objective.id]);
+  let parentId = objective.parentObjectiveId;
+  while (parentId) {
+    if (seen.has(parentId)) throw new ProjectError("OBJECTIVE_CYCLE_DETECTED", "Objective parent cycle detected");
+    seen.add(parentId);
+    const parent = await store.getObjective(parentId);
+    parentId = parent?.parentObjectiveId;
+  }
+}
+
+function subjectMatches(rule: BoundaryPermissionRule, input: EvaluateBoundaryActionInput): boolean {
+  switch (rule.subject.kind) {
+    case "role":
+      return Boolean(input.roles?.includes(rule.subject.role));
+    case "agent":
+      return input.actor === rule.subject.agentId;
+    case "principal":
+      return input.actor === rule.subject.principalId;
+  }
+}
+
+function maxRisk(left: RiskLevel, right: RiskLevel): RiskLevel {
+  const order: RiskLevel[] = ["low", "medium", "high", "critical"];
+  return order[Math.max(order.indexOf(left), order.indexOf(right))]!;
+}
+
+function maxFlow(left: BoundaryEvaluation["requiredFlow"] | undefined, right: NonNullable<BoundaryEvaluation["requiredFlow"]>): BoundaryEvaluation["requiredFlow"] {
+  const order: NonNullable<BoundaryEvaluation["requiredFlow"]>[] = ["direct", "delegate_vote", "structured_negotiation", "guardian_review", "governance_request"];
+  if (!left) return right;
+  return order[Math.max(order.indexOf(left), order.indexOf(right))]!;
 }
 
 function limit<T>(values: T[], count: number | undefined): T[] {
