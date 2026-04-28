@@ -34,6 +34,34 @@ export type ProjectBootstrapId = Id<"ProjectBootstrapId">;
 export type AddressBindingId = Id<"AddressBindingId">;
 export type CapabilityId = Id<"CapabilityId">;
 
+// M10 – External Input
+export type ExternalInputId = Id<"ExternalInputId">;
+export type InputClassificationId = Id<"InputClassificationId">;
+export type InputRiskAssessmentId = Id<"InputRiskAssessmentId">;
+export type InputRoutingDecisionId = Id<"InputRoutingDecisionId">;
+export type InputDeduplicationResultId = Id<"InputDeduplicationResultId">;
+export type ObservationQueueItemId = Id<"ObservationQueueItemId">;
+export type ObservationId = Id<"ObservationId">;
+
+// M11 – Selection / Lease / Failover / Reputation
+export type SelectionPolicyId = Id<"SelectionPolicyId">;
+export type LeaseId = Id<"LeaseId">;
+export type RoleAssignmentId = Id<"RoleAssignmentId">;
+export type FailoverRecordId = Id<"FailoverRecordId">;
+export type ReputationEvidenceId = Id<"ReputationEvidenceId">;
+
+// M13 – Reward / Settlement / Ledger
+export type RewardIntentId = Id<"RewardIntentId">;
+export type RewardPolicyId = Id<"RewardPolicyId">;
+export type SettlementIntentId = Id<"SettlementIntentId">;
+export type FundingReceiptId = Id<"FundingReceiptId">;
+export type SettlementReceiptId = Id<"SettlementReceiptId">;
+export type SlashIntentId = Id<"SlashIntentId">;
+export type LedgerAccountId = Id<"LedgerAccountId">;
+export type LedgerEntryId = Id<"LedgerEntryId">;
+export type StakeReceiptId = Id<"StakeReceiptId">;
+export type ReviewAggregationId = Id<"ReviewAggregationId">;
+
 export interface Version {
   value: string;
 }

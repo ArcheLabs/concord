@@ -181,6 +181,34 @@ importers:
         specifier: ^3.1.2
         version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
 
+  packages/adapters-mock-ledger:
+    dependencies:
+      '@concord/core':
+        specifier: workspace:*
+        version: link:../core
+      '@concord/foundation':
+        specifier: workspace:*
+        version: link:../foundation
+      '@concord/incentive':
+        specifier: workspace:*
+        version: link:../incentive
+      '@concord/settlement':
+        specifier: workspace:*
+        version: link:../settlement
+      zod:
+        specifier: ^3.24.3
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.17
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.2
+        version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
+
   packages/core:
     dependencies:
       '@concord/foundation':
@@ -200,7 +228,51 @@ importers:
         specifier: ^3.1.2
         version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
 
+  packages/external-input:
+    dependencies:
+      '@concord/core':
+        specifier: workspace:*
+        version: link:../core
+      '@concord/foundation':
+        specifier: workspace:*
+        version: link:../foundation
+      zod:
+        specifier: ^3.24.3
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.17
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.2
+        version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
+
   packages/foundation:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.17
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.2
+        version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
+
+  packages/incentive:
+    dependencies:
+      '@concord/core':
+        specifier: workspace:*
+        version: link:../core
+      '@concord/foundation':
+        specifier: workspace:*
+        version: link:../foundation
+      zod:
+        specifier: ^3.24.3
+        version: 3.25.76
     devDependencies:
       '@types/node':
         specifier: ^22.15.3
@@ -307,6 +379,28 @@ importers:
         specifier: ^3.1.2
         version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
 
+  packages/reputation:
+    dependencies:
+      '@concord/core':
+        specifier: workspace:*
+        version: link:../core
+      '@concord/foundation':
+        specifier: workspace:*
+        version: link:../foundation
+      zod:
+        specifier: ^3.24.3
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.17
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.2
+        version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
+
   packages/scenario:
     dependencies:
       '@concord/adapters':
@@ -373,6 +467,56 @@ importers:
       '@concord/workflow':
         specifier: workspace:*
         version: link:../workflow
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.17
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.2
+        version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
+
+  packages/selection:
+    dependencies:
+      '@concord/core':
+        specifier: workspace:*
+        version: link:../core
+      '@concord/foundation':
+        specifier: workspace:*
+        version: link:../foundation
+      '@concord/reputation':
+        specifier: workspace:*
+        version: link:../reputation
+      zod:
+        specifier: ^3.24.3
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.17
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.2
+        version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
+
+  packages/settlement:
+    dependencies:
+      '@concord/core':
+        specifier: workspace:*
+        version: link:../core
+      '@concord/foundation':
+        specifier: workspace:*
+        version: link:../foundation
+      '@concord/incentive':
+        specifier: workspace:*
+        version: link:../incentive
+      zod:
+        specifier: ^3.24.3
+        version: 3.25.76
     devDependencies:
       '@types/node':
         specifier: ^22.15.3
