@@ -212,6 +212,25 @@ importers:
         specifier: ^3.1.2
         version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
 
+  packages/project:
+    dependencies:
+      '@concord/core':
+        specifier: workspace:*
+        version: link:../core
+      '@concord/foundation':
+        specifier: workspace:*
+        version: link:../foundation
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.17
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.2
+        version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
+
   packages/scenario:
     dependencies:
       '@concord/adapters':

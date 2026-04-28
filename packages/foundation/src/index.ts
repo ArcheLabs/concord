@@ -23,6 +23,16 @@ export type SubmissionId = Id<"SubmissionId">;
 export type ReviewRecordId = Id<"ReviewRecordId">;
 export type IncentiveIntentId = Id<"IncentiveIntentId">;
 export type GovernanceIntentId = Id<"GovernanceIntentId">;
+export type ProjectId = Id<"ProjectId">;
+export type ObjectiveId = Id<"ObjectiveId">;
+export type BoundaryId = Id<"BoundaryId">;
+export type PrincipalId = Id<"PrincipalId">;
+export type AgentId = Id<"AgentId">;
+export type RuntimeBindingId = Id<"RuntimeBindingId">;
+export type MembershipId = Id<"MembershipId">;
+export type ProjectBootstrapId = Id<"ProjectBootstrapId">;
+export type AddressBindingId = Id<"AddressBindingId">;
+export type CapabilityId = Id<"CapabilityId">;
 
 export interface Version {
   value: string;
