@@ -165,6 +165,9 @@ importers:
         specifier: workspace:*
         version: link:../foundation
     devDependencies:
+      '@ascf/state':
+        specifier: workspace:*
+        version: link:../state
       '@types/node':
         specifier: ^22.15.3
         version: 22.19.17
