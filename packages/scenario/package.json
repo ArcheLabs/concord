@@ -15,6 +15,7 @@
     "@concord/core": "workspace:*",
     "@concord/foundation": "workspace:*",
     "@concord/invariants": "workspace:*",
+    "@concord/project": "workspace:*",
     "@concord/sdk": "workspace:*",
     "@concord/trace": "workspace:*",
     "yaml": "^2.8.1"

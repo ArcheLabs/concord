@@ -7,6 +7,7 @@ import { createEvent, hashCanonical, makeId, nowTimestamp, sha256, version, with
 import { DefaultInvariantRunner } from "@concord/invariants";
 import { DefaultTraceRecorder, DefaultTraceReplayer, DefaultTraceVerifier, createTracedEventStore, exportTraceJson } from "@concord/trace";
 import type { ProtocolTrace } from "@concord/trace";
+import type { Agent, Principal, Project, Objective, Boundary } from "@concord/project";
 import { loadScenario } from "./scenario-loader.js";
 import type { RunScenarioInput, RunScenarioResult, ScenarioFile, ScenarioLoopStep } from "./types.js";
 
@@ -26,6 +27,12 @@ interface ScenarioState {
   knowledgeCandidate?: KnowledgeCandidate;
   initialKnowledgeVersion?: unknown;
   latestKnowledgeVersion?: unknown;
+  // M9
+  m9Principals?: Map<string, Principal>;
+  m9Agents?: Map<string, Agent>;
+  m9Project?: Project;
+  m9Objectives?: Map<string, Objective>;
+  m9Boundary?: Boundary;
 }
 
 export class DefaultScenarioRunner {
@@ -84,6 +91,11 @@ export class DefaultScenarioRunner {
     });
     state.goalId = goal.id;
 
+    // M9 bootstrap — only runs when scenario declares M9 fields
+    if (input.scenario.principals?.length || input.scenario.project) {
+      await bootstrapM9(input.scenario, concord, state);
+    }
+
     for (const step of input.scenario.loop) {
       await executeStep(step, concord, state, eventStore);
     }
@@ -93,6 +105,14 @@ export class DefaultScenarioRunner {
     const stateView = createStateView({ events, knowledgeVersionId: String((latestKnowledgeVersion as { id?: string } | null)?.id ?? "kv") as never });
     await stores.projectionStore.saveStateView(stateView);
     await eventStore.append(createEvent({ type: "StateViewUpdated", payload: stateView, ...correlation(state.action?.id) }));
+
+    // Collect M9 snapshots
+    const m9Principals = state.m9Principals ? [...state.m9Principals.values()] : [];
+    const m9Agents = state.m9Agents ? [...state.m9Agents.values()] : [];
+    const m9Projects = state.m9Project ? [state.m9Project] : [];
+    const m9Objectives = state.m9Objectives ? [...state.m9Objectives.values()] : [];
+    const m9Boundaries = state.m9Boundary ? [state.m9Boundary] : [];
+
     const trace = await recorder.finish({
       snapshots: {
         workOrders: state.workOrder ? [state.workOrder] : [],
@@ -101,10 +121,16 @@ export class DefaultScenarioRunner {
         knowledgeCandidates: state.knowledgeCandidate ? [state.knowledgeCandidate] : [],
         knowledgeVersions: [state.initialKnowledgeVersion, latestKnowledgeVersion].filter(Boolean),
         stateViews: [stateView],
+        ...(m9Projects.length ? { projects: m9Projects } : {}),
+        ...(m9Objectives.length ? { objectives: m9Objectives } : {}),
+        ...(m9Boundaries.length ? { boundaries: m9Boundaries } : {}),
+        ...(m9Principals.length ? { principals: m9Principals } : {}),
+        ...(m9Agents.length ? { agents: m9Agents } : {}),
       },
       finalState: {
         latestStateView: stateView,
         ...(latestKnowledgeVersion ? { latestKnowledgeVersion } : {}),
+        ...(m9Projects.length ? { projectState: { projects: m9Projects, objectives: m9Objectives, boundaries: m9Boundaries } } : {}),
       },
     });
 
@@ -146,11 +172,115 @@ export class DefaultScenarioRunner {
   }
 }
 
+async function bootstrapM9(scenario: ScenarioFile, concord: ReturnType<typeof createConcord>, state: ScenarioState): Promise<void> {
+  state.m9Principals = new Map();
+  state.m9Agents = new Map();
+  state.m9Objectives = new Map();
+
+  // 1. Register principals
+  for (const pInput of scenario.principals ?? []) {
+    const principal = await concord.principals.registerPrincipal({
+      kind: pInput.kind,
+      displayName: pInput.displayName,
+      identityBindings: pInput.identities?.map((i) => ({ namespace: i.namespace, subject: i.subject })) ?? [{ namespace: "scenario", subject: pInput.id }],
+    });
+    state.m9Principals.set(pInput.id, principal);
+  }
+
+  // 2. Register agents + runtime bindings
+  for (const aInput of scenario.agents ?? []) {
+    const principalRef = requireValue(state.m9Principals.get(aInput.principal), `principal ${aInput.principal}`);
+    const agent = await concord.agents.registerAgent({
+      principalId: principalRef.id,
+      displayName: aInput.displayName,
+      capabilities: aInput.capabilities?.map((c) => ({ name: c.name, ...(c.tags ? { tags: c.tags } : {}) })) ?? [],
+      eligibleRoles: aInput.eligibleRoles as never ?? [],
+    });
+    if (aInput.runtime) {
+      await concord.agents.createRuntimeBinding({
+        agentId: agent.id,
+        runtimeKind: aInput.runtime.kind as never,
+        runtimeAdapterId: aInput.runtime.adapterId,
+        ...(aInput.runtime.command ? { endpoint: { kind: "local_command" as const, command: aInput.runtime.command, args: aInput.runtime.args ?? [] } } : {}),
+      });
+    }
+    state.m9Agents.set(aInput.id, agent);
+  }
+
+  // 3. Create project + boundary
+  if (scenario.project) {
+    const sponsorRef = requireValue(state.m9Principals.get(scenario.project.sponsor), `sponsor principal ${scenario.project.sponsor}`);
+    const project = await concord.projects.createProject({
+      slug: scenario.project.slug,
+      name: scenario.project.name,
+      ...(scenario.project.description ? { description: scenario.project.description } : {}),
+      sponsorPrincipalId: sponsorRef.id,
+      boundary: {
+        createdBy: sponsorRef.id,
+        defaultRiskLevel: scenario.boundary?.defaultRiskLevel ?? "medium",
+        prohibitedActions: scenario.boundary?.prohibitedActions ?? [],
+        riskRules: scenario.boundary?.riskRules ?? [],
+        escalationRules: (scenario.boundary?.escalationRules ?? []).map((r) => ({ ...r, requiredFlow: r.requiredFlow as never })),
+      },
+    });
+    state.m9Project = project;
+    const activeBoundary = await concord.boundaries.getActiveBoundary(project.id);
+    if (activeBoundary) state.m9Boundary = activeBoundary;
+
+    // 4. Create + activate objectives
+    const primaryObjectiveRef = scenario.objectives?.[0];
+    for (const oInput of scenario.objectives ?? []) {
+      const objective = await concord.objectives.createObjective({
+        projectId: project.id,
+        kind: oInput.kind,
+        title: oInput.title,
+        description: oInput.description,
+        successCriteria: oInput.successCriteria,
+        ...(oInput.forbiddenOutcomes ? { forbiddenOutcomes: oInput.forbiddenOutcomes } : {}),
+        createdBy: sponsorRef.id,
+      });
+      if (oInput.status === "active" || !oInput.status) {
+        const activated = await concord.objectives.activateObjective({ objectiveId: objective.id, actorId: sponsorRef.id });
+        state.m9Objectives.set(oInput.id, activated);
+        if (oInput.id === primaryObjectiveRef?.id) {
+          const updatedProject = await concord.objectives.setPrimaryObjective({ projectId: project.id, objectiveId: activated.id, actorId: sponsorRef.id });
+          state.m9Project = updatedProject;
+        }
+      } else {
+        state.m9Objectives.set(oInput.id, objective);
+      }
+    }
+
+    // 5. Activate project (requires primary objective + active boundary)
+    if (state.m9Project.primaryObjectiveId) {
+      state.m9Project = await concord.projects.activateProject({ projectId: state.m9Project.id, actorId: sponsorRef.id });
+    }
+
+    // 6. Create memberships
+    for (const mInput of scenario.memberships ?? []) {
+      const principalRef = requireValue(state.m9Principals.get(mInput.principal), `membership principal ${mInput.principal}`);
+      const agentRef = mInput.agent ? state.m9Agents.get(mInput.agent) : undefined;
+      await concord.agents.addProjectMember({
+        projectId: project.id,
+        principalId: principalRef.id,
+        ...(agentRef ? { agentId: agentRef.id } : {}),
+        roles: mInput.roles as never,
+        source: "scenario",
+      });
+    }
+  }
+}
+
 async function executeStep(step: ScenarioLoopStep, concord: ReturnType<typeof createConcord>, state: ScenarioState, eventStore: { append(event: never): Promise<void> }): Promise<void> {
   switch (step.type) {
     case "create_context": {
       const actor = getActor(state, step.actor);
-      state.contextBundle = await concord.context.createBundle({ goalId: state.goalId as never, actorId: actor.id });
+      state.contextBundle = await concord.context.createBundle({
+        goalId: state.goalId as never,
+        actorId: actor.id,
+        ...(state.m9Project ? { projectId: state.m9Project.id as never } : {}),
+        ...(state.m9Project?.primaryObjectiveId ? { objectiveId: state.m9Project.primaryObjectiveId as never } : {}),
+      });
       state.contextReceipt = await concord.context.acceptBundle({ actorId: actor.id, contextBundleId: state.contextBundle.id });
       return;
     }
