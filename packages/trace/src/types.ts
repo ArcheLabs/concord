@@ -147,6 +147,7 @@ export interface TraceVerifyOptions {
   strict?: boolean;
   invariants?: string[];
   skipInvariants?: string[];
+  runInvariants?: (trace: ProtocolTrace, options?: TraceVerifyOptions) => Promise<TraceInvariantResult[]> | TraceInvariantResult[];
 }
 
 export interface TraceVerifier {

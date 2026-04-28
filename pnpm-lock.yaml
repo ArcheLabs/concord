@@ -242,6 +242,9 @@ importers:
       '@concord/foundation':
         specifier: workspace:*
         version: link:../foundation
+      '@concord/state':
+        specifier: workspace:*
+        version: link:../state
     devDependencies:
       '@types/node':
         specifier: ^22.15.3
