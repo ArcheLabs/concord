@@ -26,6 +26,15 @@ export interface TraceIndexes {
   knowledgeCommitsById: Map<string, unknown>;
   knowledgeVersionsById: Map<string, unknown>;
   decisionRecordsById: Map<string, unknown>;
+  // M9
+  projectsById: Map<string, unknown>;
+  objectivesByProjectId: Map<string, unknown[]>;
+  boundariesByProjectId: Map<string, unknown[]>;
+  principalsById: Map<string, unknown>;
+  agentsById: Map<string, unknown>;
+  agentsByPrincipalId: Map<string, unknown[]>;
+  runtimeBindingsById: Map<string, unknown>;
+  membershipsByProjectId: Map<string, unknown[]>;
 }
 
 export interface InvariantCheckResult {

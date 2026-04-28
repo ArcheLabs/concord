@@ -47,6 +47,15 @@ export function buildTraceIndexes(trace: ProtocolTrace): TraceIndexes {
     knowledgeCommitsById: byId(trace.snapshots.knowledgeCommits),
     knowledgeVersionsById: byId(trace.snapshots.knowledgeVersions),
     decisionRecordsById: byId(trace.snapshots.decisionRecords),
+    // M9
+    projectsById: byId(trace.snapshots.projects ?? []),
+    objectivesByProjectId: groupByField(trace.snapshots.objectives ?? [], "projectId"),
+    boundariesByProjectId: groupByField(trace.snapshots.boundaries ?? [], "projectId"),
+    principalsById: byId(trace.snapshots.principals ?? []),
+    agentsById: byId(trace.snapshots.agents ?? []),
+    agentsByPrincipalId: groupByField(trace.snapshots.agents ?? [], "principalId"),
+    runtimeBindingsById: byId(trace.snapshots.runtimeBindings ?? []),
+    membershipsByProjectId: groupByField(trace.snapshots.memberships ?? [], "projectId"),
   };
 }
 
