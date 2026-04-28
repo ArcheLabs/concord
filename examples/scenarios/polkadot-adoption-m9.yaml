@@ -1,0 +1,195 @@
+id: polkadot-adoption-m9
+name: "Polkadot Adoption M9 — Project, Objective, Boundary, Principal, Agent"
+description: >
+  Full M9 scenario: a sponsor principal registers a project with boundary,
+  defines objectives, and an agent executes a work order within policy bounds.
+deterministic: true
+
+# ---------------------------------------------------------------------------
+# M9: Principals, Agents, Project, Objectives, Boundary, Memberships
+# ---------------------------------------------------------------------------
+principals:
+  - id: sponsor
+    kind: human
+    displayName: "Polkadot Foundation Sponsor"
+    identities:
+      - namespace: "web3"
+        subject: "polkadot-foundation-sponsor"
+
+  - id: alice-principal
+    kind: human
+    displayName: "Alice"
+    identities:
+      - namespace: "polkadot"
+        subject: "alice"
+
+  - id: bob-principal
+    kind: human
+    displayName: "Bob"
+    identities:
+      - namespace: "polkadot"
+        subject: "bob"
+
+agents:
+  - id: alice-agent
+    principal: alice-principal
+    displayName: "Alice Agent"
+    eligibleRoles:
+      - contributor
+    capabilities:
+      - name: "polkadot.runtime"
+    runtime:
+      id: "alice-runtime"
+      kind: "script"
+      adapterId: "script-adapter-v1"
+      command: "node"
+      args: ["examples/runtime.js"]
+
+  - id: bob-agent
+    principal: bob-principal
+    displayName: "Bob Agent"
+    eligibleRoles:
+      - reviewer
+    capabilities:
+      - name: "polkadot.review"
+
+project:
+  slug: "polkadot-adoption"
+  name: "Polkadot Ecosystem Adoption"
+  description: "Drive developer adoption of the Polkadot ecosystem."
+  sponsor: sponsor
+
+objectives:
+  - id: primary-objective
+    kind: milestone
+    title: "Onboard 100 dApp Developers"
+    description: "Achieve 100 registered dApp developers building on Polkadot by end of quarter."
+    status: active
+    successCriteria:
+      - id: sc-1
+        description: "100 developers registered in the developer portal."
+        verificationMethod: state_observation
+        required: true
+      - id: sc-2
+        description: "At least 10 projects deployed to testnet."
+        verificationMethod: human_review
+        required: false
+    forbiddenOutcomes:
+      - "Centralized control of developer registry"
+
+boundary:
+  defaultRiskLevel: medium
+  prohibitedActions:
+    - id: rule-no-budget-drain
+      actionType: "transfer_treasury_funds"
+      effect: deny
+      reason: "Treasury transfers require separate governance."
+  riskRules:
+    - id: rule-smart-contract
+      actionType: "deploy_smart_contract"
+      riskLevel: high
+      reason: "Smart contract deployments carry elevated risk."
+  escalationRules:
+    - id: rule-escalate-critical
+      actionType: "modify_core_protocol"
+      requiredFlow: "council_vote"
+      reason: "Core protocol changes require council approval."
+
+memberships:
+  - principal: alice-principal
+    agent: alice-agent
+    roles:
+      - contributor
+  - principal: bob-principal
+    agent: bob-agent
+    roles:
+      - reviewer
+
+# ---------------------------------------------------------------------------
+# M8: Actors, Goal, Policies, Loop
+# ---------------------------------------------------------------------------
+actors:
+  - id: alice
+    kind: human
+    runtime: alice-agent.runtime
+
+  - id: bob
+    kind: human
+
+goal:
+  id: polkadot-adoption-goal-m9
+  title: "Increase Polkadot Developer Adoption"
+  description: "Facilitate developer onboarding and ecosystem contribution tracking."
+
+initialKnowledge:
+  - path: "../../docs/m8-invariants.md"
+    layer: formal
+    summary: "M8 protocol invariants documentation."
+
+policies:
+  - actionType: "submit_developer_onboarding_plan"
+    decisionFlow: delegate_vote
+    votingRule:
+      quorum: 1
+      threshold: 0.5
+    produces: work_order
+    resultBinding: binding
+
+loop:
+  - type: create_context
+    actor: alice
+
+  - type: observe
+    actor: alice
+    summary: "Observed 45 new developer registrations this week."
+
+  - type: propose_action
+    actor: alice
+    actionType: "submit_developer_onboarding_plan"
+    title: "Onboarding Plan Q1"
+    description: "Structured plan to onboard 100 developers by end of Q1."
+    riskLevel: low
+
+  - type: evaluate_policy
+    actor: alice
+
+  - type: delegate_vote
+    voters: [bob]
+    vote: approve
+    rationale: "Plan is well-structured and achievable."
+
+  - type: create_work_order
+    title: "Execute Onboarding Plan Q1"
+    assignee: alice
+
+  - type: run_runtime
+    actor: alice
+
+  - type: submit_work
+    actor: alice
+    summary: "Onboarding plan submitted with 12 new developers onboarded."
+
+  - type: review
+    reviewer: bob
+    result: accept
+    score: 0.9
+    rationale: "Good progress. Artifacts verified."
+
+  - type: create_knowledge_candidate
+    actor: alice
+    layer: formal
+    summary: "Onboarding strategy validated — 12 developers onboarded in first iteration."
+
+  - type: commit_knowledge
+    actor: alice
+
+expectations:
+  verifyTrace: true
+  replayTrace: false
+  invariants:
+    mustPass:
+      - project.P001.active-has-objective
+      - project.P002.active-has-boundary
+      - project.P003.slug-unique
+      - boundary.B001.active-project-has-active-boundary
+      - agent.A001.belongs-to-principal

@@ -56,4 +56,55 @@ describe("scenario runner", () => {
       second.verification?.invariantResults.map((result) => [result.id, result.status]),
     );
   });
+
+  describe("M9 scenario — project, objective, boundary, principal, agent", () => {
+    it("runs polkadot-adoption-m9 and produces project snapshots", async () => {
+      const result = await new DefaultScenarioRunner().run({
+        scenarioPath: "../../examples/scenarios/polkadot-adoption-m9.yaml",
+        verify: true,
+      });
+
+      expect(result.ok).toBe(true);
+      expect(result.trace.scenario?.scenarioId).toBe("polkadot-adoption-m9");
+
+      // Project snapshot present
+      const projects = (result.trace.snapshots as Record<string, unknown>)?.projects as Array<{ slug: string; status: string }> | undefined;
+      expect(projects).toBeDefined();
+      expect(projects!.length).toBeGreaterThan(0);
+      expect(projects![0]!.slug).toBe("polkadot-adoption");
+      expect(projects![0]!.status).toBe("active");
+    });
+
+    it("passes M9 invariants P001, P002, P003, B001, A001", async () => {
+      const result = await new DefaultScenarioRunner().run({
+        scenarioPath: "../../examples/scenarios/polkadot-adoption-m9.yaml",
+        verify: true,
+      });
+
+      expect(result.verification?.ok).toBe(true);
+      const invariants = result.verification?.invariantResults ?? [];
+      const byId = Object.fromEntries(invariants.map((r) => [r.id, r.status]));
+
+      expect(byId["project.P001.active-has-objective"]).toBe("pass");
+      expect(byId["project.P002.active-has-boundary"]).toBe("pass");
+      expect(byId["project.P003.slug-unique"]).toBe("pass");
+      expect(byId["boundary.B001.active-project-has-active-boundary"]).toBe("pass");
+      expect(byId["agent.A001.belongs-to-principal"]).toBe("pass");
+    });
+
+    it("produces principal and agent snapshots", async () => {
+      const result = await new DefaultScenarioRunner().run({
+        scenarioPath: "../../examples/scenarios/polkadot-adoption-m9.yaml",
+      });
+
+      const snapshots = result.trace.snapshots as Record<string, unknown>;
+      const principals = snapshots?.principals as Array<{ displayName: string }> | undefined;
+      const agents = snapshots?.agents as Array<{ displayName: string }> | undefined;
+
+      expect(principals).toBeDefined();
+      expect(principals!.length).toBe(3); // sponsor, alice-principal, bob-principal
+      expect(agents).toBeDefined();
+      expect(agents!.length).toBe(2); // alice-agent, bob-agent
+    });
+  });
 });
