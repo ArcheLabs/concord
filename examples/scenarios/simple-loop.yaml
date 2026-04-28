@@ -1,0 +1,85 @@
+id: simple-loop
+name: Simple Concord Loop
+description: Minimal action-policy-work-review-knowledge loop.
+deterministic: true
+
+store:
+  type: memory
+
+actors:
+  - id: alice-agent
+    kind: agent
+    roles: [observer, member]
+    runtime: script-researcher
+  - id: bob-agent
+    kind: agent
+    roles: [delegate, reviewer]
+  - id: guardian
+    kind: guardian
+    roles: [guardian]
+
+goal:
+  id: goal-demo
+  title: Improve developer onboarding
+  description: Identify one bottleneck and propose one improvement.
+
+initialKnowledge:
+  - id: bootstrap
+    path: ../knowledge/protocol-baseline.md
+    layer: bootstrap
+
+policies:
+  - actionType: create_research_task
+    decisionFlow: delegate_vote
+    votingRule:
+      threshold: 1
+      quorum: 1
+    produces: [work_order, knowledge_candidate]
+    resultBinding: binding
+
+loop:
+  - type: create_context
+    actor: alice-agent
+  - type: observe
+    actor: alice-agent
+    summary: Developer onboarding has unclear first steps.
+  - type: propose_action
+    actor: alice-agent
+    actionType: create_research_task
+    title: Research onboarding bottlenecks
+    description: Identify one major bottleneck in developer onboarding.
+  - type: evaluate_policy
+  - type: delegate_vote
+    voters: [bob-agent]
+    vote: approve
+  - type: create_work_order
+    title: Research onboarding bottlenecks
+    assignee: alice-agent
+  - type: run_runtime
+    actor: alice-agent
+    runtime: script-researcher
+  - type: submit_work
+    actor: alice-agent
+  - type: review
+    reviewer: bob-agent
+    result: accept
+    score: 0.9
+    rationale: Submission is relevant and sufficient.
+  - type: create_knowledge_candidate
+    actor: bob-agent
+    layer: formal
+  - type: commit_knowledge
+    actor: bob-agent
+
+expectations:
+  verifyTrace: true
+  replayTrace: true
+  invariants:
+    mustPass:
+      - action.policy.required
+      - action.no-work-without-policy
+      - context.submission.requires-receipt
+      - knowledge.commit.requires-decision
+      - knowledge.version.has-hash
+      - work.submission-has-execution-receipt
+      - work.accepted-requires-review

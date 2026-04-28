@@ -1,0 +1,101 @@
+id: polkadot-adoption-research-loop
+name: Polkadot Adoption Research Loop
+description: Observer proposes Polkadot developer adoption research and commits accepted output as knowledge.
+deterministic: true
+
+store:
+  type: memory
+
+actors:
+  - id: observer-agent
+    kind: agent
+    roles: [observer, member]
+    runtime: polkadot-research-script
+  - id: delegate-agent
+    kind: agent
+    roles: [delegate, reviewer]
+  - id: reviewer-agent
+    kind: agent
+    roles: [reviewer]
+  - id: guardian
+    kind: guardian
+    roles: [guardian]
+
+goal:
+  id: goal-polkadot-adoption
+  title: Improve Polkadot developer adoption
+  description: Continuously identify adoption bottlenecks and propose concrete improvements.
+
+initialKnowledge:
+  - id: bootstrap
+    path: ../knowledge/polkadot-bootstrap.md
+    layer: bootstrap
+  - id: protocol
+    path: ../knowledge/protocol-baseline.md
+    layer: protocol
+
+policies:
+  - actionType: create_research_task
+    decisionFlow: delegate_vote
+    votingRule:
+      threshold: 1
+      quorum: 1
+    produces: [work_order, knowledge_candidate]
+    resultBinding: binding
+
+loop:
+  - type: create_context
+    actor: observer-agent
+  - type: observe
+    actor: observer-agent
+    summary: Polkadot onboarding remains fragmented across docs, SDK examples, deployment paths, and governance concepts.
+  - type: propose_action
+    actor: observer-agent
+    actionType: create_research_task
+    title: Research Polkadot developer onboarding bottlenecks
+    description: Produce a concise research note identifying the top three developer barriers.
+  - type: evaluate_policy
+  - type: delegate_vote
+    voters: [delegate-agent]
+    vote: approve
+    rationale: Research task is low risk and aligned with the long-term goal.
+  - type: create_work_order
+    title: Research Polkadot developer onboarding bottlenecks
+    assignee: observer-agent
+    expectedOutputs: [markdown_report]
+  - type: run_runtime
+    actor: observer-agent
+    runtime: polkadot-research-script
+  - type: submit_work
+    actor: observer-agent
+    summary: Submitted a research note on Polkadot developer onboarding bottlenecks.
+  - type: review
+    reviewer: reviewer-agent
+    result: accept
+    score: 0.85
+    rationale: The submission identifies actionable bottlenecks and can be committed as formal knowledge.
+  - type: create_knowledge_candidate
+    actor: reviewer-agent
+    layer: formal
+    summary: Polkadot onboarding has three bottlenecks: fragmented docs, unclear deployment paths, and high conceptual load.
+  - type: commit_knowledge
+    actor: reviewer-agent
+
+expectations:
+  verifyTrace: true
+  replayTrace: true
+  invariants:
+    mustPass:
+      - action.policy.required
+      - action.no-work-without-policy
+      - action.high-risk-no-direct
+      - context.submission.requires-receipt
+      - context.receipt.matches-bundle
+      - knowledge.candidate-before-commit
+      - knowledge.commit.requires-decision
+      - knowledge.version.has-hash
+      - work.claim-before-submit
+      - work.submission-has-execution-receipt
+      - work.accepted-requires-review
+      - review.target-exists
+      - coordinator.no-policy-bypass

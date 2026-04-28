@@ -1,0 +1,27 @@
+{
+  "name": "@concord/scenario",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@concord/adapters": "workspace:*",
+    "@concord/core": "workspace:*",
+    "@concord/foundation": "workspace:*",
+    "@concord/invariants": "workspace:*",
+    "@concord/sdk": "workspace:*",
+    "@concord/trace": "workspace:*",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  }
+}

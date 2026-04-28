@@ -73,11 +73,23 @@ export interface EventEnvelope<TType extends string = string, TPayload = unknown
   signature?: SignatureRef;
 }
 
-export function makeId<T extends string>(kind: T, value = `${kind.toLowerCase()}_${randomUUID()}`): Id<T> {
-  return value as Id<T>;
+export function makeId<T extends string>(kind: T, value = deterministicRandomSentinel): Id<T> {
+  if (value !== deterministicRandomSentinel) {
+    return value as Id<T>;
+  }
+  if (deterministicState) {
+    deterministicState.idCounter += 1;
+    return `${kind.toLowerCase()}_${deterministicState.seed}_${String(deterministicState.idCounter).padStart(4, "0")}` as Id<T>;
+  }
+  return `${kind.toLowerCase()}_${randomUUID()}` as Id<T>;
 }
 
 export function nowTimestamp(): Timestamp {
+  if (deterministicState) {
+    const date = new Date(deterministicState.startMs + deterministicState.timeCounter * 1000);
+    deterministicState.timeCounter += 1;
+    return { iso: date.toISOString() };
+  }
   return { iso: new Date().toISOString() };
 }
 
@@ -162,4 +174,37 @@ export function assertEventHash(event: EventEnvelope<string, unknown>): void {
   if (event.hash.value !== expected.value) {
     throw new Error(`Invalid event hash for ${event.id}`);
   }
+}
+
+const deterministicRandomSentinel = "__concord_random__";
+
+let deterministicState: { seed: string; idCounter: number; timeCounter: number; startMs: number } | null = null;
+
+export function enableDeterministicMode(input: { seed?: string; startIso?: string } = {}): void {
+  deterministicState = {
+    seed: sanitizeSeed(input.seed ?? "det"),
+    idCounter: 0,
+    timeCounter: 0,
+    startMs: Date.parse(input.startIso ?? "2026-01-01T00:00:00.000Z"),
+  };
+}
+
+export function disableDeterministicMode(): void {
+  deterministicState = null;
+}
+
+export async function withDeterministicMode<T>(
+  input: { seed?: string; startIso?: string },
+  callback: () => Promise<T> | T,
+): Promise<T> {
+  enableDeterministicMode(input);
+  try {
+    return await callback();
+  } finally {
+    disableDeterministicMode();
+  }
+}
+
+function sanitizeSeed(seed: string): string {
+  return seed.replace(/[^a-zA-Z0-9_-]/g, "_");
 }
