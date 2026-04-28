@@ -23,9 +23,18 @@ importers:
 
   apps/coordinator-api:
     dependencies:
+      '@concord/foundation':
+        specifier: workspace:*
+        version: link:../../packages/foundation
+      '@concord/invariants':
+        specifier: workspace:*
+        version: link:../../packages/invariants
       '@concord/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
+      '@concord/trace':
+        specifier: workspace:*
+        version: link:../../packages/trace
       fastify:
         specifier: ^5.3.2
         version: 5.8.5

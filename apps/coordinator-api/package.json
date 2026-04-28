@@ -10,7 +10,10 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@concord/foundation": "workspace:*",
+    "@concord/invariants": "workspace:*",
     "@concord/sdk": "workspace:*",
+    "@concord/trace": "workspace:*",
     "fastify": "^5.3.2"
   },
   "devDependencies": {

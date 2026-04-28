@@ -3,8 +3,9 @@ import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import Fastify from "fastify";
 import { createConcord, createSQLiteConcord, type Concord } from "@concord/sdk";
+import { registerTraceRoutes } from "./routes/traces.js";
 
-export function buildServer(concord: Concord = createDefaultConcord()) {
+export function buildServer(concord: Concord = createDefaultConcord(), options: { traceDir?: string } = {}) {
   const server = Fastify({ logger: false });
 
   server.get("/health", async () => ({ status: "ok" }));
@@ -114,6 +115,9 @@ export function buildServer(concord: Concord = createDefaultConcord()) {
   server.get("/state/latest", async () => concord.state.projections.getLatestStateView());
 
   server.get("/knowledge/latest", async () => concord.knowledge.getLatestVersion());
+  registerTraceRoutes(server, {
+    traceDir: options.traceDir ?? process.env.CONCORD_TRACE_DIR ?? `${process.env.INIT_CWD ?? process.cwd()}/traces`,
+  });
 
   return server;
 }
