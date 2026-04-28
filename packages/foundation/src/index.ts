@@ -116,6 +116,10 @@ export function sha256(value: unknown): Hash {
   };
 }
 
+export function hashCanonical(value: unknown): Hash {
+  return sha256(value);
+}
+
 export function eventHashInput<TType extends string, TPayload>(
   event: Omit<EventEnvelope<TType, TPayload>, "hash"> | EventEnvelope<TType, TPayload>,
 ): Omit<EventEnvelope<TType, TPayload>, "hash" | "signature"> {
