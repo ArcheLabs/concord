@@ -89,6 +89,20 @@ curl -X POST http://localhost:3000/loop/run-once
 curl http://localhost:3000/state/latest
 ```
 
+## M8 Trace And Scenario Tools
+
+```bash
+pnpm concord scenario run examples/scenarios/simple-loop.yaml --trace-out traces/simple-loop.trace.json --verify --replay
+pnpm concord trace verify traces/simple-loop.trace.json
+pnpm concord trace replay traces/simple-loop.trace.json
+```
+
+M8 documentation:
+
+- [Protocol Trace](docs/m8-protocol-trace.md)
+- [Invariants](docs/m8-invariants.md)
+- [Scenario Runner](docs/m8-scenario-runner.md)
+
 ## Current Boundaries
 
 This prototype intentionally does not implement real OpenGov, EVM contracts, P2P networking, Concord Chain, Web Console, complex reputation, slash adjudication, or sybil resistance. Those systems are represented by ports and mock adapters so they can be replaced without changing SDK core dependencies.
