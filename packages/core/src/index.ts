@@ -575,6 +575,56 @@ export interface CoordinationGateway {
   broadcastContext(input: { contextBundle: ContextBundle; recipients?: ActorId[] }): Promise<void>;
 }
 
+// ─── Chain-First Abstractions ───────────────────────────────────────────────
+
+export type ChainNamespace = "eip155" | "substrate" | "solana" | "unknown";
+
+export interface ChainRef {
+  namespace: ChainNamespace;
+  chainId: string;
+  network?: string;
+}
+
+export type FinalityLevel =
+  | "pending"
+  | "included"
+  | "safe"
+  | "finalized"
+  | "reverted";
+
+export interface TxReceipt {
+  txHash: string;
+  chain: ChainRef;
+  blockNumber?: bigint;
+  blockHash?: string;
+  finalizedAt?: string;
+  finality: FinalityLevel;
+}
+
+export interface IndexCursor {
+  chain: ChainRef;
+  position: string;
+  blockNumber?: bigint;
+  blockHash?: string;
+  eventIndex?: number;
+}
+
+export interface NormalizedChainEvent<TType extends string = string, TPayload = unknown> {
+  id: string;
+  chain: ChainRef;
+  type: TType;
+  payload: TPayload;
+  txHash?: string;
+  blockNumber?: bigint;
+  blockHash?: string;
+  logIndex?: number;
+  extrinsicIndex?: number;
+  observedAt: string;
+  finality: FinalityLevel;
+}
+
+// ─── Schemas ─────────────────────────────────────────────────────────────────
+
 export const ActorSchema = z.object({
   id: z.string(),
   kind: z.enum(["agent", "human", "service", "guardian"]),
