@@ -157,6 +157,14 @@ export interface SelectionService {
     opts?: { exclude?: ActorId[] },
   ): Promise<ActorId | undefined>;
 
+  /** Select up to `count` distinct actors via successive weighted draws */
+  selectMany(
+    candidates: CandidateActor[],
+    policy: SelectionPolicy,
+    count: number,
+    opts?: { exclude?: ActorId[] },
+  ): Promise<ActorId[]>;
+
   assign(
     actorId: ActorId,
     projectId: ProjectId,

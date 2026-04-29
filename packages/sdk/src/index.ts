@@ -154,7 +154,8 @@ export function createConcord(config: ConcordConfig = {}): Concord {
   const boundaries = new BoundaryService(projectStore, eventStore);
   const basePolicyRegistry = config.policyRegistry ?? new InMemoryActionPolicyRegistry(eventStore);
   const policyRegistry = new BoundaryAwareActionPolicyRegistry(basePolicyRegistry, projectStore, boundaries, eventStore);
-  const negotiation = new InMemoryNegotiationService(eventStore);
+  const reputationService = config.reputationService ?? new InMemoryReputationEvidenceService();
+  const negotiation = new InMemoryNegotiationService(eventStore, reputationService);
   const work = new InMemoryWorkService(eventStore, { projectStore });
   const runtime = new RuntimeService(config.runtimes?.length ? config.runtimes : [new MockRuntimeAdapter()], { projectStore });
   const review = new InMemoryReviewService(eventStore);
@@ -217,7 +218,7 @@ export function createConcord(config: ConcordConfig = {}): Concord {
     selection: config.selectionService ?? new InMemorySelectionService(),
     leases: config.leaseManager ?? new InMemoryLeaseManager(),
     failover: config.failoverService ?? new InMemoryFailoverService(),
-    reputation: config.reputationService ?? new InMemoryReputationEvidenceService(),
+    reputation: reputationService,
     incentives: config.incentiveService ?? new InMemoryIncentiveService(config.m13FundingGateway),
     settlement: config.settlementService ?? new InMemorySettlementService(),
   };
@@ -417,7 +418,7 @@ export class LoopService {
       negotiationId: negotiation.id,
       position: { actorId: delegate.id, stance: "support", rationale: "MVP action is scoped and auditable.", evidence: [] },
     });
-    const decision = await this.deps.negotiation.close({ negotiationId: negotiation.id, votingRule: { quorum: 1, threshold: 0.5 } });
+    const { decision } = await this.deps.negotiation.close({ negotiationId: negotiation.id, votingRule: { quorum: 1, threshold: 0.5 } });
     const workOrder = await this.deps.work.createWorkOrder({
       actionId: action.id,
       goalId: goal.id,

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { InMemoryLeaseManager, InMemorySelectionService, InMemoryFailoverService } from "./service.js";
 import { checkLeaseRenewalInvariant, checkLeaseDurationInvariant } from "./invariants.js";
 import { makeId, nowTimestamp, version } from "@concord/foundation";
-import type { SelectionPolicy, CandidateActor } from "./types.js";
+import type { SelectionPolicy, CandidateActor, RandomSource } from "./types.js";
 
 const PROJECT_ID = makeId("ProjectId", "proj_sel");
 const ACTOR_A = makeId("ActorId", "actor_a");
@@ -18,6 +18,9 @@ function makePolicy(strategy: SelectionPolicy["strategy"], overrides?: Partial<S
     ...overrides,
   };
 }
+
+/** Deterministic random source: always returns 0 → selects the heaviest-weighted candidate first */
+const zeroRandom: RandomSource = { nextFloat: () => 0, nextInt: () => 0 };
 
 describe("InMemoryLeaseManager", () => {
   let lm: InMemoryLeaseManager;
@@ -60,9 +63,6 @@ describe("InMemoryLeaseManager", () => {
 });
 
 describe("InMemorySelectionService", () => {
-  let svc: InMemorySelectionService;
-  beforeEach(() => { svc = new InMemorySelectionService(); });
-
   const candidates: CandidateActor[] = [
     { actorId: ACTOR_A, reputationScore: 0.8, stakeAmount: 100 },
     { actorId: ACTOR_B, reputationScore: 0.5, stakeAmount: 200 },
@@ -70,36 +70,44 @@ describe("InMemorySelectionService", () => {
   ];
 
   it("first_available selects first candidate", async () => {
+    const svc = new InMemorySelectionService();
     const policy = await svc.createPolicy(makePolicy("first_available"));
     const selected = await svc.select(candidates, policy);
     expect(selected).toBe(ACTOR_A);
   });
 
-  it("reputation_weighted selects highest reputation", async () => {
+  it("reputation_weighted selects highest reputation with zero random (deterministic)", async () => {
+    // Inject zero random so the weighted draw always picks the highest-weight candidate (ACTOR_A)
+    const svc = new InMemorySelectionService(zeroRandom);
     const policy = await svc.createPolicy(makePolicy("reputation_weighted"));
     const selected = await svc.select(candidates, policy);
     expect(selected).toBe(ACTOR_A);
   });
 
-  it("stake_weighted selects highest stake", async () => {
+  it("stake_weighted selects first candidate with zero random (rand=0 picks first element)", async () => {
+    // With nextFloat()=0: rand=0*totalWeight=0; first subtraction goes ≤0, picks ACTOR_A
+    const svc = new InMemorySelectionService(zeroRandom);
     const policy = await svc.createPolicy(makePolicy("stake_weighted"));
     const selected = await svc.select(candidates, policy);
-    expect(selected).toBe(ACTOR_B);
+    expect(selected).toBe(ACTOR_A);
   });
 
   it("excludes specified actors", async () => {
+    const svc = new InMemorySelectionService();
     const policy = await svc.createPolicy(makePolicy("first_available"));
     const selected = await svc.select(candidates, policy, { exclude: [ACTOR_A] });
     expect(selected).toBe(ACTOR_B);
   });
 
   it("returns undefined if all candidates excluded", async () => {
+    const svc = new InMemorySelectionService();
     const policy = await svc.createPolicy(makePolicy("first_available"));
     const selected = await svc.select(candidates, policy, { exclude: [ACTOR_A, ACTOR_B, ACTOR_C] });
     expect(selected).toBeUndefined();
   });
 
   it("filters by min_reputation", async () => {
+    const svc = new InMemorySelectionService(zeroRandom);
     const policy = await svc.createPolicy(makePolicy("reputation_weighted", {
       filters: [{ kind: "min_reputation", minReputationScore: 0.6 }],
     }));
@@ -108,6 +116,7 @@ describe("InMemorySelectionService", () => {
   });
 
   it("assigns and lists role assignments", async () => {
+    const svc = new InMemorySelectionService();
     const a = await svc.assign(ACTOR_A, PROJECT_ID, "observer");
     expect(a.status).toBe("active");
     const list = await svc.listAssignments(PROJECT_ID, "observer");
@@ -115,9 +124,27 @@ describe("InMemorySelectionService", () => {
   });
 
   it("revokes an assignment", async () => {
+    const svc = new InMemorySelectionService();
     const a = await svc.assign(ACTOR_A, PROJECT_ID, "reviewer");
     const revoked = await svc.revokeAssignment(a.id, "test reason");
     expect(revoked.status).toBe("revoked");
+  });
+
+  it("selectMany: selects n candidates without duplicates", async () => {
+    const svc = new InMemorySelectionService();
+    const policy = await svc.createPolicy(makePolicy("first_available"));
+    const selected = await svc.selectMany(candidates, policy, 2);
+    expect(selected).toHaveLength(2);
+    expect(new Set(selected).size).toBe(2);
+    // No duplicates
+    expect(selected[0]).not.toBe(selected[1]);
+  });
+
+  it("selectMany: returns fewer than requested when pool is small", async () => {
+    const svc = new InMemorySelectionService();
+    const policy = await svc.createPolicy(makePolicy("first_available"));
+    const selected = await svc.selectMany(candidates.slice(0, 1), policy, 3);
+    expect(selected).toHaveLength(1);
   });
 });
 

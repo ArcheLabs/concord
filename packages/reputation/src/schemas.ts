@@ -8,6 +8,8 @@ export const ReputationEvidenceKindSchema = z.enum([
   "observation_completed",
   "delegate_participated",
   "delegate_non_response",
+  "delegate_revision_accepted",
+  "review_consensus_deviation",
   "knowledge_committed",
   "knowledge_rejected",
   "failover_triggered",

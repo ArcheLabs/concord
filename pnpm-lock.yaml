@@ -270,6 +270,9 @@ importers:
       '@concord/foundation':
         specifier: workspace:*
         version: link:../foundation
+      '@concord/reputation':
+        specifier: workspace:*
+        version: link:../reputation
       zod:
         specifier: ^3.24.3
         version: 3.25.76
@@ -327,6 +330,9 @@ importers:
       '@concord/foundation':
         specifier: workspace:*
         version: link:../foundation
+      '@concord/reputation':
+        specifier: workspace:*
+        version: link:../reputation
     devDependencies:
       '@types/node':
         specifier: ^22.15.3

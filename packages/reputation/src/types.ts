@@ -20,6 +20,8 @@ export type ReputationEvidenceKind =
   | "observation_completed"
   | "delegate_participated"
   | "delegate_non_response"
+  | "delegate_revision_accepted"
+  | "review_consensus_deviation"
   | "knowledge_committed"
   | "knowledge_rejected"
   | "failover_triggered"
@@ -58,6 +60,24 @@ export interface ReputationScore {
   computedAt: Timestamp;
 }
 
+// ─── Consistency Score ────────────────────────────────────────────────────────
+
+/**
+ * Per-actor result from ConsistencyScorer.
+ * multiplier ∈ [0,1]: 1 = perfect peer consensus, 0 = maximum deviation.
+ */
+export interface ConsistencyScore {
+  actorId: ActorId;
+  /** Raw reported score */
+  reportedScore: number;
+  /** Mean of all other reporters (excluding this actor) */
+  peerMean: number;
+  /** Absolute deviation from peer mean, normalised to [0,1] */
+  deviation: number;
+  /** Reward multiplier: 1 - deviation */
+  multiplier: number;
+}
+
 // ─── Service Interface ────────────────────────────────────────────────────────
 
 export interface ReputationEvidenceFilter {
@@ -84,6 +104,12 @@ export interface ReputationEvidenceService {
   ): Promise<ReputationEvidence>;
 
   getScore(actorId: ActorId, projectId: ProjectId): Promise<ReputationScore>;
+
+  /**
+   * Exponential Moving Average score over time-ordered evidence.
+   * decayFactor ∈ (0,1]: smaller = longer memory. Default: 0.1
+   */
+  getEmaScore(actorId: ActorId, projectId: ProjectId, decayFactor?: number): Promise<ReputationScore>;
 
   listEvidence(filter?: ReputationEvidenceFilter): Promise<ReputationEvidence[]>;
 }

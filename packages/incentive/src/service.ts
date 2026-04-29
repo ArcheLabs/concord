@@ -1,4 +1,5 @@
 import { makeId, nowTimestamp, version } from "@concord/foundation";
+import { ConsistencyScorer } from "@concord/reputation";
 import type {
   ActorId,
   ArtifactRef,
@@ -171,5 +172,34 @@ export class InMemoryIncentiveService implements IncentiveService {
     const i = this.intents.get(id);
     if (!i) throw new Error(`RewardIntent not found: ${id}`);
     return i;
+  }
+}
+
+// ─── Reviewer Payoff Calculator ──────────────────────────────────────────────────────
+
+/**
+ * Applies peer-prediction consistency multipliers to reviewer reward amounts.
+ *
+ * Usage:
+ *   const calc = new ReviewerPayoffCalculator();
+ *   const multipliers = calc.computeMultipliers(positions);
+ *   const adjusted = baseAmount * (multipliers.get(actorId) ?? 1);
+ */
+export class ReviewerPayoffCalculator {
+  private readonly scorer = new ConsistencyScorer();
+
+  /**
+   * @param positions Array of { actorId, score } from a negotiation or review round
+   * @returns Map from actorId to multiplier ∈ [0, 1]
+   */
+  computeMultipliers(
+    positions: ReadonlyArray<{ actorId: import("@concord/foundation").ActorId; score: number }>,
+  ): Map<import("@concord/foundation").ActorId, number> {
+    const consistency = this.scorer.score(positions);
+    const result = new Map<import("@concord/foundation").ActorId, number>();
+    for (const [actorId, cs] of consistency) {
+      result.set(actorId, cs.multiplier);
+    }
+    return result;
   }
 }

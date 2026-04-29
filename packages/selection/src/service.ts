@@ -192,22 +192,65 @@ export class InMemorySelectionService implements SelectionService {
       }
 
       case "reputation_weighted": {
-        const sorted = [...pool].sort(
-          (a, b) => (b.reputationScore ?? 0) - (a.reputationScore ?? 0),
-        );
-        return sorted[0]?.actorId;
+        // Weighted random sampling proportional to reputation score (clamped to ≥0)
+        const weights = pool.map((c) => Math.max(0, c.reputationScore ?? 0));
+        const totalWeight = weights.reduce((s, w) => s + w, 0);
+        if (totalWeight === 0) return pool[this.random.nextInt(pool.length)]?.actorId;
+        let rand = this.random.nextFloat() * totalWeight;
+        for (let i = 0; i < pool.length; i++) {
+          rand -= weights[i]!;
+          if (rand <= 0) return pool[i]!.actorId;
+        }
+        return pool[pool.length - 1]?.actorId;
       }
 
       case "stake_weighted": {
-        const sorted = [...pool].sort(
-          (a, b) => (b.stakeAmount ?? 0) - (a.stakeAmount ?? 0),
+        const weights = pool.map((c) => Math.max(0, c.stakeAmount ?? 0));
+        const totalWeight = weights.reduce((s, w) => s + w, 0);
+        if (totalWeight === 0) return pool[this.random.nextInt(pool.length)]?.actorId;
+        let rand = this.random.nextFloat() * totalWeight;
+        for (let i = 0; i < pool.length; i++) {
+          rand -= weights[i]!;
+          if (rand <= 0) return pool[i]!.actorId;
+        }
+        return pool[pool.length - 1]?.actorId;
+      }
+
+      case "hybrid": {
+        // Combine reputation and stake weights equally
+        const weights = pool.map((c) =>
+          Math.max(0, (c.reputationScore ?? 0) + (c.stakeAmount ?? 0) / 1000),
         );
-        return sorted[0]?.actorId;
+        const totalWeight = weights.reduce((s, w) => s + w, 0);
+        if (totalWeight === 0) return pool[this.random.nextInt(pool.length)]?.actorId;
+        let rand = this.random.nextFloat() * totalWeight;
+        for (let i = 0; i < pool.length; i++) {
+          rand -= weights[i]!;
+          if (rand <= 0) return pool[i]!.actorId;
+        }
+        return pool[pool.length - 1]?.actorId;
       }
 
       default:
         return pool[0]?.actorId;
     }
+  }
+
+  async selectMany(
+    candidates: CandidateActor[],
+    policy: SelectionPolicy,
+    count: number,
+    opts?: { exclude?: ActorId[] },
+  ): Promise<ActorId[]> {
+    const selected: ActorId[] = [];
+    const exclude = [...(opts?.exclude ?? [])];
+    for (let i = 0; i < count; i++) {
+      const pick = await this.select(candidates, policy, { exclude });
+      if (pick === undefined) break;
+      selected.push(pick);
+      exclude.push(pick);
+    }
+    return selected;
   }
 
   async assign(

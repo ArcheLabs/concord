@@ -277,6 +277,12 @@ export interface NegotiationInstance {
   context: ContextReceipt;
   status: "open" | "collecting_positions" | "revising" | "scoring" | "converged" | "failed" | "escalated" | "closed";
   rounds: NegotiationRound[];
+  /** Maximum revision rounds before escalation (default: 3) */
+  maxRounds?: number;
+  /** Weighted-average score threshold for convergence, range [0,1] (default: 0.7) */
+  convergenceThreshold?: number;
+  /** Set when this instance was forked from another negotiation */
+  parentNegotiationId?: NegotiationInstanceId;
   createdAt: Timestamp;
   closedAt?: Timestamp;
 }
