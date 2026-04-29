@@ -19,6 +19,11 @@
     { "path": "../reputation" },
     { "path": "../incentive" },
     { "path": "../settlement" },
-    { "path": "../adapters-mock-ledger" }
+    { "path": "../adapters-mock-ledger" },
+    { "path": "../chain-indexing" },
+    { "path": "../governance" },
+    { "path": "../agent-directory" },
+    { "path": "../trust-registry" },
+    { "path": "../coordination-view" }
   ]
 }

@@ -61,6 +61,26 @@ import { InMemorySettlementService } from "@concord/settlement";
 import { MockFundingGateway as MockLedgerFundingGateway, MockLedger } from "@concord/adapters-mock-ledger";
 // Keep legacy MockFundingGateway import for existing fundingGateway field
 import { MockFundingGateway } from "@concord/adapters";
+import type {
+  GovernanceActionsPort,
+  GovernanceQueryPort,
+  GovernanceIndexerPort,
+} from "@concord/governance";
+import type {
+  AgentDirectoryActionsPort,
+  AgentDirectoryQueryPort,
+  AgentDirectoryIndexerPort,
+} from "@concord/agent-directory";
+import type {
+  TrustRegistryActionsPort,
+  TrustRegistryQueryPort,
+  TrustRegistryIndexerPort,
+} from "@concord/trust-registry";
+import type {
+  GovernanceProjectionPort,
+  AgentDirectoryProjectionPort,
+  TrustViewProjectionPort,
+} from "@concord/coordination-view";
 
 export interface ConcordConfig {
   eventStore?: EventStore;
@@ -84,6 +104,22 @@ export interface ConcordConfig {
   m13FundingGateway?: M13FundingGateway;
   stakeGateway?: StakeGateway;
   priceGateway?: PriceGateway;
+  // Chain-First – Governance
+  governanceActions?: GovernanceActionsPort;
+  governanceQuery?: GovernanceQueryPort;
+  governanceIndexer?: GovernanceIndexerPort;
+  // Chain-First – Agent Directory
+  agentDirectoryActions?: AgentDirectoryActionsPort;
+  agentDirectoryQuery?: AgentDirectoryQueryPort;
+  agentDirectoryIndexer?: AgentDirectoryIndexerPort;
+  // Chain-First – Trust Registry
+  trustRegistryActions?: TrustRegistryActionsPort;
+  trustRegistryQuery?: TrustRegistryQueryPort;
+  trustRegistryIndexer?: TrustRegistryIndexerPort;
+  // Chain-First – Projection Ports
+  governanceProjection?: GovernanceProjectionPort;
+  agentDirectoryProjection?: AgentDirectoryProjectionPort;
+  trustViewProjection?: TrustViewProjectionPort;
 }
 
 export interface LoopResult {

@@ -209,6 +209,72 @@ importers:
         specifier: ^3.1.2
         version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
 
+  packages/agent-directory:
+    dependencies:
+      '@concord/core':
+        specifier: workspace:*
+        version: link:../core
+      '@concord/foundation':
+        specifier: workspace:*
+        version: link:../foundation
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.17
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.2
+        version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
+
+  packages/chain-indexing:
+    dependencies:
+      '@concord/core':
+        specifier: workspace:*
+        version: link:../core
+      '@concord/foundation':
+        specifier: workspace:*
+        version: link:../foundation
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.17
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.2
+        version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
+
+  packages/coordination-view:
+    dependencies:
+      '@concord/agent-directory':
+        specifier: workspace:*
+        version: link:../agent-directory
+      '@concord/core':
+        specifier: workspace:*
+        version: link:../core
+      '@concord/foundation':
+        specifier: workspace:*
+        version: link:../foundation
+      '@concord/governance':
+        specifier: workspace:*
+        version: link:../governance
+      '@concord/trust-registry':
+        specifier: workspace:*
+        version: link:../trust-registry
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.17
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.2
+        version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
+
   packages/core:
     dependencies:
       '@concord/foundation':
@@ -251,6 +317,25 @@ importers:
         version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
 
   packages/foundation:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.17
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.2
+        version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
+
+  packages/governance:
+    dependencies:
+      '@concord/core':
+        specifier: workspace:*
+        version: link:../core
+      '@concord/foundation':
+        specifier: workspace:*
+        version: link:../foundation
     devDependencies:
       '@types/node':
         specifier: ^22.15.3
@@ -585,6 +670,25 @@ importers:
       '@concord/state':
         specifier: workspace:*
         version: link:../state
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.17
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.2
+        version: 3.2.4(@types/node@22.19.17)(tsx@4.21.0)(yaml@2.8.3)
+
+  packages/trust-registry:
+    dependencies:
+      '@concord/core':
+        specifier: workspace:*
+        version: link:../core
+      '@concord/foundation':
+        specifier: workspace:*
+        version: link:../foundation
     devDependencies:
       '@types/node':
         specifier: ^22.15.3
