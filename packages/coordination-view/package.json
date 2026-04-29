@@ -1,0 +1,25 @@
+{
+  "name": "@concord/coordination-view",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@concord/core": "workspace:*",
+    "@concord/foundation": "workspace:*",
+    "@concord/governance": "workspace:*",
+    "@concord/agent-directory": "workspace:*",
+    "@concord/trust-registry": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  }
+}
