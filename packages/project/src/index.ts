@@ -1,4 +1,4 @@
-import { DatabaseSync } from "node:sqlite";
+import { createRequire } from "node:module";
 import {
   createEvent,
   makeId,
@@ -24,6 +24,17 @@ import type {
   AddressBindingId,
 } from "@concord/foundation";
 import type { ActionIntent, ActionPolicyRegistry, Actor, ConcordRole, ContextBundle, DecisionFlow, EventStore, PolicyDecision, StateView } from "@concord/core";
+
+type DatabaseSync = {
+  exec(sql: string): void;
+  prepare(sql: string): {
+    run(...args: unknown[]): unknown;
+    get(...args: unknown[]): unknown;
+    all(...args: unknown[]): unknown;
+  };
+};
+
+const requireModule = createRequire(import.meta.url);
 
 export type {
   AgentId,
@@ -1402,7 +1413,7 @@ export class SQLiteProjectStore implements ProjectStore {
   readonly db: DatabaseSync;
 
   constructor(filename = ":memory:", db?: DatabaseSync) {
-    this.db = db ?? new DatabaseSync(filename);
+    this.db = db ?? new (loadDatabaseSync())(filename);
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS projects (
         id TEXT PRIMARY KEY,
@@ -1877,4 +1888,12 @@ function policyResultForFlow(flow: NonNullable<BoundaryEvaluation["requiredFlow"
 
 function limit<T>(values: T[], count: number | undefined): T[] {
   return count === undefined ? values : values.slice(0, count);
+}
+
+function loadDatabaseSync(): new (filename: string) => DatabaseSync {
+  try {
+    return (requireModule("node:sqlite") as { DatabaseSync: new (filename: string) => DatabaseSync }).DatabaseSync;
+  } catch (error) {
+    throw new Error(`SQLite project store requires a Node runtime with node:sqlite support: ${(error as Error).message}`);
+  }
 }

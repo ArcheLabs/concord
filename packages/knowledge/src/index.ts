@@ -1,4 +1,4 @@
-import { DatabaseSync } from "node:sqlite";
+import { createRequire } from "node:module";
 import type {
   KnowledgeCandidate,
   KnowledgeCommit,
@@ -18,6 +18,17 @@ import {
   nowTimestamp,
   sha256,
 } from "@concord/foundation";
+
+type DatabaseSync = {
+  exec(sql: string): void;
+  prepare(sql: string): {
+    run(...args: unknown[]): unknown;
+    get(...args: unknown[]): unknown;
+    all(...args: unknown[]): unknown;
+  };
+};
+
+const requireModule = createRequire(import.meta.url);
 
 export class MemoryKnowledgeStore implements KnowledgeStore {
   private readonly versions = new Map<KnowledgeVersionId, KnowledgeVersion>();
@@ -126,7 +137,7 @@ export class SQLiteKnowledgeStore implements KnowledgeStore {
   readonly db: DatabaseSync;
 
   constructor(filename = ":memory:", db?: DatabaseSync) {
-    this.db = db ?? new DatabaseSync(filename);
+    this.db = db ?? new (loadDatabaseSync())(filename);
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS knowledge_versions (
         id TEXT PRIMARY KEY,
@@ -308,4 +319,12 @@ export class SQLiteKnowledgeStore implements KnowledgeStore {
 
 function isDefined<T>(value: T | undefined | null): value is T {
   return value !== undefined && value !== null;
+}
+
+function loadDatabaseSync(): new (filename: string) => DatabaseSync {
+  try {
+    return (requireModule("node:sqlite") as { DatabaseSync: new (filename: string) => DatabaseSync }).DatabaseSync;
+  } catch (error) {
+    throw new Error(`SQLite knowledge store requires a Node runtime with node:sqlite support: ${(error as Error).message}`);
+  }
 }

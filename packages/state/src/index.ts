@@ -1,4 +1,4 @@
-import { DatabaseSync } from "node:sqlite";
+import { createRequire } from "node:module";
 import type { EventStore, ProjectionScope, ProjectionStore, StateView } from "@concord/core";
 import {
   assertEventHash,
@@ -12,6 +12,17 @@ import {
   version,
   type StateViewId,
 } from "@concord/foundation";
+
+type DatabaseSync = {
+  exec(sql: string): void;
+  prepare(sql: string): {
+    run(...args: unknown[]): unknown;
+    get(...args: unknown[]): unknown;
+    all(...args: unknown[]): unknown;
+  };
+};
+
+const requireModule = createRequire(import.meta.url);
 
 export class MemoryEventStore implements EventStore {
   private readonly events: EventEnvelope<string, unknown>[] = [];
@@ -52,7 +63,7 @@ export class SQLiteEventStore implements EventStore {
   readonly db: DatabaseSync;
 
   constructor(filename = ":memory:") {
-    this.db = new DatabaseSync(filename);
+    this.db = new (loadDatabaseSync())(filename);
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS events (
         id TEXT PRIMARY KEY,
@@ -139,7 +150,7 @@ export class SQLiteProjectionStore implements ProjectionStore {
   readonly db: DatabaseSync;
 
   constructor(filename = ":memory:", db?: DatabaseSync) {
-    this.db = db ?? new DatabaseSync(filename);
+    this.db = db ?? new (loadDatabaseSync())(filename);
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS state_views (
         id TEXT PRIMARY KEY,
@@ -185,6 +196,14 @@ export class SQLiteProjectionStore implements ProjectionStore {
         view.projectionHash.value,
         JSON.stringify(view),
       );
+  }
+}
+
+function loadDatabaseSync(): new (filename: string) => DatabaseSync {
+  try {
+    return (requireModule("node:sqlite") as { DatabaseSync: new (filename: string) => DatabaseSync }).DatabaseSync;
+  } catch (error) {
+    throw new Error(`SQLite stores require a Node runtime with node:sqlite support: ${(error as Error).message}`);
   }
 }
 
