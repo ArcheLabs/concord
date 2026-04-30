@@ -1,0 +1,22 @@
+{
+  "name": "@concord/adapter-evm-actions",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@concord/core": "workspace:*",
+    "@concord/governance": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "~5.4.0",
+    "vitest": "^3.0.0"
+  }
+}
