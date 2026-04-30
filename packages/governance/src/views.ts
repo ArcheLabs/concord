@@ -5,7 +5,8 @@ import type { GovernanceEventType } from "./events.js";
 // ─── Projection Cursor ───────────────────────────────────────────────────────
 
 export interface ChainProjectionCursor {
-  blockNumber?: bigint;
+  /** Stored as string to survive JSON serialization of bigint. */
+  blockNumber?: string | bigint;
   blockHash?: string;
   eventIndex?: number;
   extrinsicIndex?: number;
