@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import type { ActionIntent, ActionPolicy, Actor, ContextBundle, ContextReceipt, DecisionRecord, KnowledgeCandidate, WorkOrder } from "@concord/core";
-import { MemoryEventStore, MemoryKnowledgeStore, MemoryProjectionStore, SQLiteEventStore, SQLiteKnowledgeStore, SQLiteProjectionStore, createStateView } from "@concord/adapters";
+import type { ActionIntent, ActionPolicy, Actor, ContextBundle, ContextReceipt, DecisionRecord, KnowledgeCandidate, NegotiationInstance, WorkOrder } from "@concord/core";
+import { MemoryEventStore, MemoryKnowledgeStore, MemoryProjectionStore, createStateView } from "@concord/adapters";
 import { createConcord } from "@concord/sdk";
 import { createEvent, hashCanonical, makeId, nowTimestamp, sha256, version, withDeterministicMode, type ActorId } from "@concord/foundation";
 import { DefaultInvariantRunner } from "@concord/invariants";
@@ -20,6 +20,7 @@ interface ScenarioState {
   contextReceipt?: ContextReceipt;
   action?: ActionIntent;
   decision?: DecisionRecord;
+  negotiation?: NegotiationInstance;
   workOrder?: WorkOrder;
   execution?: Awaited<ReturnType<ReturnType<typeof createConcord>["runtime"]["execute"]>>;
   submission?: Awaited<ReturnType<ReturnType<typeof createConcord>["work"]["submit"]>>;
@@ -60,7 +61,7 @@ export class DefaultScenarioRunner {
       },
     });
 
-    const stores = createStores(input.scenario);
+    const stores = await createStores(input.scenario);
     const eventStore = createTracedEventStore(stores.eventStore, recorder);
     const concord = createConcord({ eventStore, projectionStore: stores.projectionStore, knowledgeStore: stores.knowledgeStore });
     const state: ScenarioState = { scenarioPath: input.scenarioPath, scenario: input.scenario, actors: new Map() };
@@ -115,6 +116,9 @@ export class DefaultScenarioRunner {
 
     const trace = await recorder.finish({
       snapshots: {
+        actions: state.action ? [state.action] : [],
+        decisionRecords: state.decision ? [state.decision] : [],
+        negotiations: state.negotiation ? [state.negotiation] : [],
         workOrders: state.workOrder ? [state.workOrder] : [],
         submissions: state.submission ? [state.submission] : [],
         reviews: state.review ? [state.review] : [],
@@ -324,6 +328,44 @@ async function executeStep(step: ScenarioLoopStep, concord: ReturnType<typeof cr
         },
       });
       state.decision = (await concord.negotiation.close({ negotiationId: negotiation.id, votingRule: { quorum: 1, threshold: 0.5 } })).decision;
+      state.negotiation = negotiation;
+      return;
+    }
+    case "start_negotiation": {
+      const participants = (step.participants?.length ? step.participants : state.scenario.actors.map((actor) => actor.id))
+        .map((id) => getActor(state, id));
+      state.negotiation = await concord.negotiation.create({
+        action: requireValue(state.action, "action"),
+        protocolId: step.protocolId ?? "simple-structured-negotiation",
+        participants,
+        context: requireValue(state.contextReceipt, "context receipt"),
+        ...(step.maxRounds === undefined ? {} : { maxRounds: step.maxRounds }),
+        ...(step.convergenceThreshold === undefined ? {} : { convergenceThreshold: step.convergenceThreshold }),
+      });
+      return;
+    }
+    case "submit_negotiation_position": {
+      const actor = getActor(state, step.actor);
+      state.negotiation = await concord.negotiation.submitPosition({
+        negotiationId: requireValue(state.negotiation, "negotiation").id,
+        position: {
+          actorId: actor.id,
+          stance: step.stance,
+          rationale: step.rationale ?? "Scenario negotiation position.",
+          evidence: [],
+          ...(step.score === undefined ? {} : { score: step.score }),
+        },
+      });
+      return;
+    }
+    case "close_negotiation": {
+      const result = await concord.negotiation.close({
+        negotiationId: requireValue(state.negotiation, "negotiation").id,
+        votingRule: { quorum: 1, threshold: 0.5 },
+        ...(state.m9Project ? { projectId: state.m9Project.id } : {}),
+      });
+      state.decision = result.decision;
+      state.negotiation = result.instance;
       return;
     }
     case "create_work_order": {
@@ -343,7 +385,12 @@ async function executeStep(step: ScenarioLoopStep, concord: ReturnType<typeof cr
       return;
     }
     case "run_runtime": {
-      state.execution = await concord.runtime.execute({ actorId: getActor(state, step.actor).id, workOrder: requireValue(state.workOrder, "work order"), context: requireValue(state.contextBundle, "context") });
+      state.execution = await concord.runtime.execute({
+        actorId: getActor(state, step.actor).id,
+        workOrder: requireValue(state.workOrder, "work order"),
+        context: requireValue(state.contextBundle, "context"),
+        ...(step.runtimeId ? { runtimeId: step.runtimeId } : {}),
+      });
       return;
     }
     case "submit_work": {
@@ -428,8 +475,9 @@ async function executeStep(step: ScenarioLoopStep, concord: ReturnType<typeof cr
   }
 }
 
-function createStores(scenario: ScenarioFile) {
+async function createStores(scenario: ScenarioFile) {
   if (scenario.store?.type === "sqlite") {
+    const { SQLiteEventStore, SQLiteKnowledgeStore, SQLiteProjectionStore } = await import("@concord/adapters");
     const filename = scenario.store.path ?? ":memory:";
     const eventStore = new SQLiteEventStore(filename);
     return {
@@ -441,7 +489,7 @@ function createStores(scenario: ScenarioFile) {
   return { eventStore: new MemoryEventStore(), projectionStore: new MemoryProjectionStore(), knowledgeStore: new MemoryKnowledgeStore() };
 }
 
-async function seedKnowledge(knowledgeStore: MemoryKnowledgeStore | SQLiteKnowledgeStore, scenario: ScenarioFile, scenarioPath: string, createdBy: ActorId) {
+async function seedKnowledge(knowledgeStore: MemoryKnowledgeStore | { seedInitialVersion(input: Parameters<MemoryKnowledgeStore["seedInitialVersion"]>[0]): ReturnType<MemoryKnowledgeStore["seedInitialVersion"]> }, scenario: ScenarioFile, scenarioPath: string, createdBy: ActorId) {
   const seed = await Promise.all(
     (scenario.initialKnowledge ?? []).map(async (knowledge) => {
       const path = resolve(dirname(resolve(scenarioPath)), knowledge.path);

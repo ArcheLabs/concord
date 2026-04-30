@@ -107,4 +107,38 @@ describe("scenario runner", () => {
       expect(agents!.length).toBe(2); // alice-agent, bob-agent
     });
   });
+
+  describe("Phase F scenario — test agent collaboration loop", () => {
+    it("runs the Phase F collaboration loop with all agent role snapshots", async () => {
+      const result = await new DefaultScenarioRunner().run({
+        scenarioPath: "../../examples/scenarios/phase-f-agent-collaboration.yaml",
+        verify: true,
+        replay: true,
+      });
+
+      expect(result.ok).toBe(true);
+      expect(result.trace.scenario?.scenarioId).toBe("phase-f-agent-collaboration");
+
+      const snapshots = result.trace.snapshots as unknown as Record<string, unknown>;
+      const agents = snapshots.agents as Array<{ displayName: string; eligibleRoles?: string[] }> | undefined;
+      const workOrders = snapshots.workOrders as Array<{ status: string }> | undefined;
+      const reviews = snapshots.reviews as Array<{ result: string }> | undefined;
+      const decisions = snapshots.decisionRecords as Array<{ result: string; source: string }> | undefined;
+      const actions = snapshots.actions as Array<{ riskLevel: string }> | undefined;
+
+      expect(agents?.map((agent) => agent.displayName)).toEqual([
+        "Observer Agent",
+        "Delegate Agent",
+        "Worker Agent",
+        "Reviewer Agent",
+        "Guardian Agent",
+      ]);
+      expect(actions?.[0]?.riskLevel).toBe("high");
+      expect(decisions?.some((decision) => decision.result === "approved" && decision.source === "structured_negotiation")).toBe(true);
+      expect(workOrders?.at(-1)?.status).toBe("accepted");
+      expect(reviews?.at(-1)?.result).toBe("accept");
+      expect(result.verification?.ok).toBe(true);
+      expect(result.replay?.ok).toBe(true);
+    });
+  });
 });

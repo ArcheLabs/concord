@@ -42,6 +42,10 @@ export class InMemoryWorkService {
     return [...this.workOrders.values()].filter((workOrder) => workOrder.status === "open");
   }
 
+  async listWorkOrders(): Promise<WorkOrder[]> {
+    return [...this.workOrders.values()];
+  }
+
   async getWorkOrder(id: WorkOrderId): Promise<WorkOrder | null> {
     return this.workOrders.get(id) ?? null;
   }

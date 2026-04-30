@@ -174,6 +174,10 @@ export function captureEventSnapshot(snapshots: TraceSnapshots, event: EventEnve
     case "WorkReviewSubmitted":
       snapshots.reviews.push(event.payload);
       break;
+    case "GuardianReviewRequested":
+    case "GuardianReviewCompleted":
+      snapshots.humanRequests?.push(event.payload);
+      break;
     case "KnowledgeCandidateCreated":
       snapshots.knowledgeCandidates.push(event.payload);
       break;

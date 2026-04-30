@@ -1,0 +1,227 @@
+id: phase-f-agent-collaboration
+name: "Phase F — Test Agent Collaboration Loop"
+description: >
+  Repeatable scripted/test-agent collaboration loop for Observer, Delegate,
+  Worker, Reviewer, and Guardian roles.
+deterministic: true
+
+store:
+  type: memory
+
+principals:
+  - id: sponsor-principal
+    kind: human
+    displayName: "Phase F Sponsor"
+    identities:
+      - namespace: "scenario"
+        subject: "phase-f-sponsor"
+  - id: observer-principal
+    kind: service
+    displayName: "Observer Principal"
+  - id: delegate-principal
+    kind: service
+    displayName: "Delegate Principal"
+  - id: worker-principal
+    kind: service
+    displayName: "Worker Principal"
+  - id: reviewer-principal
+    kind: service
+    displayName: "Reviewer Principal"
+  - id: guardian-principal
+    kind: service
+    displayName: "Guardian Principal"
+
+agents:
+  - id: observer-agent
+    principal: observer-principal
+    displayName: "Observer Agent"
+    eligibleRoles: [observer]
+    capabilities:
+      - name: "phase-f.observe"
+  - id: delegate-agent
+    principal: delegate-principal
+    displayName: "Delegate Agent"
+    eligibleRoles: [delegate]
+    capabilities:
+      - name: "phase-f.negotiate"
+  - id: worker-agent
+    principal: worker-principal
+    displayName: "Worker Agent"
+    eligibleRoles: [member]
+    capabilities:
+      - name: "phase-f.execute"
+    runtime:
+      id: "phase-f-worker-runtime"
+      kind: "script"
+      adapterId: "mock-runtime"
+  - id: reviewer-agent
+    principal: reviewer-principal
+    displayName: "Reviewer Agent"
+    eligibleRoles: [reviewer]
+    capabilities:
+      - name: "phase-f.review"
+  - id: guardian-agent
+    principal: guardian-principal
+    displayName: "Guardian Agent"
+    eligibleRoles: [guardian]
+    capabilities:
+      - name: "phase-f.guardian"
+
+project:
+  slug: "phase-f-collaboration"
+  name: "Phase F Collaboration Demo"
+  description: "Demonstrate scripted agent collaboration with traceable work and review."
+  sponsor: sponsor-principal
+
+objectives:
+  - id: phase-f-objective
+    kind: milestone
+    title: "Complete a scripted collaboration loop"
+    description: "Agents coordinate to observe, negotiate, execute, and review a task."
+    status: active
+    successCriteria:
+      - id: sc-loop-complete
+        description: "A work order is accepted after review."
+        verificationMethod: agent_review
+        required: true
+      - id: sc-trace
+        description: "A protocol trace verifies and replays."
+        verificationMethod: manual
+        required: true
+
+boundary:
+  defaultRiskLevel: medium
+  riskRules:
+    - id: phase-f-risk-high-impact
+      actionType: "coordinate_agent_task"
+      riskLevel: high
+      reason: "Agent coordination affects project state and requires explicit review."
+  escalationRules:
+    - id: phase-f-guardian-escalation
+      actionType: "coordinate_agent_task"
+      requiredFlow: "guardian_review"
+      reason: "High-impact test-agent coordination must be visible to Guardian."
+
+memberships:
+  - principal: observer-principal
+    agent: observer-agent
+    roles: [observer]
+  - principal: delegate-principal
+    agent: delegate-agent
+    roles: [delegate]
+  - principal: worker-principal
+    agent: worker-agent
+    roles: [member]
+  - principal: reviewer-principal
+    agent: reviewer-agent
+    roles: [reviewer]
+  - principal: guardian-principal
+    agent: guardian-agent
+    roles: [guardian]
+
+actors:
+  - id: observer
+    kind: agent
+    roles: [observer]
+    runtime: phase-f-observer
+  - id: delegate
+    kind: agent
+    roles: [delegate]
+  - id: worker
+    kind: agent
+    roles: [member]
+    runtime: mock.execute
+  - id: reviewer
+    kind: agent
+    roles: [reviewer]
+  - id: guardian
+    kind: guardian
+    roles: [guardian]
+
+goal:
+  id: phase-f-goal
+  title: "Run a test-agent collaboration loop"
+  description: "Demonstrate Observer, Delegate, Worker, Reviewer, and Guardian collaboration."
+
+initialKnowledge:
+  - id: phase-f-bootstrap
+    path: "../knowledge/protocol-baseline.md"
+    layer: bootstrap
+
+policies:
+  - actionType: "coordinate_agent_task"
+    decisionFlow: structured_negotiation
+    votingRule:
+      quorum: 1
+      threshold: 0.5
+    produces: [work_order, review]
+    resultBinding: binding
+
+loop:
+  - type: create_context
+    actor: observer
+  - type: observe
+    actor: observer
+    summary: "Observer identified that Phase F needs an auditable collaboration smoke."
+  - type: propose_action
+    actor: observer
+    actionType: "coordinate_agent_task"
+    title: "Run Phase F collaboration smoke"
+    description: "Coordinate the test agents to produce, submit, and review a traceable artifact."
+    riskLevel: high
+  - type: evaluate_policy
+  - type: start_negotiation
+    participants: [delegate, guardian]
+    protocolId: "simple-structured-negotiation"
+    convergenceThreshold: 0.7
+  - type: submit_negotiation_position
+    actor: delegate
+    stance: support
+    score: 0.9
+    rationale: "The task is scoped and traceable."
+  - type: submit_negotiation_position
+    actor: guardian
+    stance: support
+    score: 0.8
+    rationale: "Risk is acceptable because the path remains scripted and observable."
+  - type: close_negotiation
+  - type: create_work_order
+    title: "Execute Phase F collaboration smoke"
+    assignee: worker
+  - type: run_runtime
+    actor: worker
+    runtime: mock.execute
+    runtimeId: mock-runtime
+  - type: submit_work
+    actor: worker
+    summary: "Worker completed the scripted collaboration task and produced an auditable artifact."
+  - type: review
+    reviewer: reviewer
+    result: accept
+    score: 0.95
+    rationale: "Submission includes execution receipt and artifact evidence."
+  - type: create_knowledge_candidate
+    actor: reviewer
+    layer: formal
+    summary: "Phase F collaboration loop completed and reviewed."
+  - type: commit_knowledge
+    actor: reviewer
+
+expectations:
+  verifyTrace: true
+  replayTrace: true
+  invariants:
+    mustPass:
+      - action.policy.required
+      - action.high-risk-no-direct
+      - action.no-work-without-policy
+      - context.submission.requires-receipt
+      - knowledge.commit.requires-decision
+      - knowledge.version.has-hash
+      - work.submission-has-execution-receipt
+      - work.accepted-requires-review
+      - project.P001.active-has-objective
+      - project.P002.active-has-boundary
+      - project.P003.slug-unique
+      - boundary.B001.active-project-has-active-boundary
+      - agent.A001.belongs-to-principal
