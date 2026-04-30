@@ -240,7 +240,7 @@ export function createConcord(config: ConcordConfig = {}): Concord {
     projectionStore,
   });
 
-  return {
+  const concord: Concord = {
     actors,
     goals,
     context,
@@ -267,9 +267,10 @@ export function createConcord(config: ConcordConfig = {}): Concord {
     reputation: reputationService,
     incentives: config.incentiveService ?? new InMemoryIncentiveService(config.m13FundingGateway),
     settlement: config.settlementService ?? new InMemorySettlementService(),
-    governanceIndexQuery: config.governanceIndexQuery,
-    serviceChainActions: config.serviceChainActions,
   };
+  if (config.governanceIndexQuery !== undefined) concord.governanceIndexQuery = config.governanceIndexQuery;
+  if (config.serviceChainActions !== undefined) concord.serviceChainActions = config.serviceChainActions;
+  return concord;
 }
 
 export function createSQLiteConcord(filename: string, config: Omit<ConcordConfig, "eventStore" | "projectionStore" | "knowledgeStore"> = {}): Concord {

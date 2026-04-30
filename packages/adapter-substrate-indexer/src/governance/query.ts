@@ -41,14 +41,16 @@ export class SubQueryGovernanceQuery implements GovernanceIndexQueryPort {
     cursor?: string;
   }): Promise<{ items: GovernanceProposalSummary[]; nextCursor?: string }> {
     const chainId = input.chain.chainId ?? "substrate:vibly-solo";
-    const page = await this.client.listSubjects({
-      chainId,
-      first: input.limit,
-      after: input.cursor,
-    });
-    return {
+    const query: { chainId: string; first?: number; after?: string } = { chainId };
+    if (input.limit !== undefined) query.first = input.limit;
+    if (input.cursor !== undefined) query.after = input.cursor;
+    const page = await this.client.listSubjects(query);
+    const result: { items: GovernanceProposalSummary[]; nextCursor?: string } = {
       items: page.nodes.map(mapSubjectToProposalSummary),
-      nextCursor: page.pageInfo.endCursor ?? undefined,
     };
+    if (page.pageInfo.endCursor !== undefined && page.pageInfo.endCursor !== null) {
+      result.nextCursor = page.pageInfo.endCursor;
+    }
+    return result;
   }
 }

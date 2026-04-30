@@ -49,7 +49,7 @@ export class EvmGovernanceActionsAdapter implements GovernanceActionsPort {
   private readonly chain: ChainRef;
 
   constructor(config: EvmActionsConfig = {}) {
-    this.chain = config.chain ?? { namespace: "evm", chainId: "31337" };
+    this.chain = config.chain ?? { namespace: "eip155", chainId: "31337" };
   }
 
   async prepareProposal(input: {
@@ -71,10 +71,10 @@ export class EvmGovernanceActionsAdapter implements GovernanceActionsPort {
     const summary: GovernanceProposalSummary = {
       ref: { chain, backend: "evm-governor", externalId: "" },
       title: input.title,
-      description: input.description,
       proposer: input.actor,
       status: "Pending",
     };
+    if (input.description !== undefined) summary.description = input.description;
     return { chain, actor: input.actor, payload, summary };
   }
 

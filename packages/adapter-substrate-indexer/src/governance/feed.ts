@@ -31,15 +31,16 @@ export class SubQueryGovernanceFeed implements GovernanceIndexFeedPort {
           if (lastUpdated && raw.updatedAt <= lastUpdated) continue;
           const summary = mapSubjectToProposalSummary(raw);
           const eventType = mapStatusToEventType(raw.status);
-          yield {
+          const event: NormalizedChainEvent<GovernanceEventType> = {
             id: `${raw.id}:${raw.status}:${raw.updatedAt}`,
             chain: input.chain,
             type: eventType,
             payload: summary,
-            blockNumber: raw.submittedAt ? BigInt(raw.submittedAt) : undefined,
             observedAt: new Date(raw.updatedAt).toISOString(),
             finality: "finalized" as const,
           };
+          if (raw.submittedAt) event.blockNumber = BigInt(raw.submittedAt);
+          yield event;
         }
         if (page.nodes.length > 0) {
           // Track the most recently updated event we've seen

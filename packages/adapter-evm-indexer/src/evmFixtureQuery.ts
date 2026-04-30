@@ -21,7 +21,7 @@ export class EvmFixtureGovernanceQuery implements GovernanceIndexQueryPort {
     // Fixture checkpoint at a known block height
     return {
       chain: input.chain,
-      cursor: { blockNumber: "200" },
+      cursor: { chain: input.chain, position: "200", blockNumber: 200n },
       finalized: false,
       observedAt: new Date().toISOString(),
     };

@@ -257,9 +257,9 @@ describe("governance backend descriptor", () => {
 
   it("GovernanceBackendDescriptor can be constructed for EVM", () => {
     const descriptor: GovernanceBackendDescriptor = {
-      id: "evm:31337",
+      id: "eip155:31337",
       backend: "evm-governor",
-      chain: { namespace: "evm", chainId: "31337" },
+      chain: { namespace: "eip155", chainId: "31337" },
       displayName: "EVM Governor (fixture)",
       source: { kind: "fixture" },
       capabilities: defaultEvmCapabilities(),

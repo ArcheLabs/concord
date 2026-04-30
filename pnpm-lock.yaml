@@ -72,6 +72,9 @@ importers:
 
   ../vibly-coordinator:
     dependencies:
+      '@concord/adapter-evm-indexer':
+        specifier: workspace:*
+        version: link:../concord/packages/adapter-evm-indexer
       '@concord/adapter-substrate-indexer':
         specifier: workspace:*
         version: link:../concord/packages/adapter-substrate-indexer
@@ -677,6 +680,12 @@ importers:
       '@concord/adapters-mock-ledger':
         specifier: workspace:*
         version: link:../adapters-mock-ledger
+      '@concord/agent-directory':
+        specifier: workspace:*
+        version: link:../agent-directory
+      '@concord/coordination-view':
+        specifier: workspace:*
+        version: link:../coordination-view
       '@concord/core':
         specifier: workspace:*
         version: link:../core
@@ -686,6 +695,9 @@ importers:
       '@concord/foundation':
         specifier: workspace:*
         version: link:../foundation
+      '@concord/governance':
+        specifier: workspace:*
+        version: link:../governance
       '@concord/incentive':
         specifier: workspace:*
         version: link:../incentive
@@ -713,6 +725,9 @@ importers:
       '@concord/state':
         specifier: workspace:*
         version: link:../state
+      '@concord/trust-registry':
+        specifier: workspace:*
+        version: link:../trust-registry
       '@concord/workflow':
         specifier: workspace:*
         version: link:../workflow

@@ -68,7 +68,7 @@ describe("scenario runner", () => {
       expect(result.trace.scenario?.scenarioId).toBe("polkadot-adoption-m9");
 
       // Project snapshot present
-      const projects = (result.trace.snapshots as Record<string, unknown>)?.projects as Array<{ slug: string; status: string }> | undefined;
+      const projects = (result.trace.snapshots as unknown as Record<string, unknown>)?.projects as Array<{ slug: string; status: string }> | undefined;
       expect(projects).toBeDefined();
       expect(projects!.length).toBeGreaterThan(0);
       expect(projects![0]!.slug).toBe("polkadot-adoption");
@@ -97,7 +97,7 @@ describe("scenario runner", () => {
         scenarioPath: "../../examples/scenarios/polkadot-adoption-m9.yaml",
       });
 
-      const snapshots = result.trace.snapshots as Record<string, unknown>;
+      const snapshots = result.trace.snapshots as unknown as Record<string, unknown>;
       const principals = snapshots?.principals as Array<{ displayName: string }> | undefined;
       const agents = snapshots?.agents as Array<{ displayName: string }> | undefined;
 

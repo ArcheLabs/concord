@@ -323,7 +323,7 @@ async function executeStep(step: ScenarioLoopStep, concord: ReturnType<typeof cr
           evidence: [],
         },
       });
-      state.decision = await concord.negotiation.close({ negotiationId: negotiation.id, votingRule: { quorum: 1, threshold: 0.5 } });
+      state.decision = (await concord.negotiation.close({ negotiationId: negotiation.id, votingRule: { quorum: 1, threshold: 0.5 } })).decision;
       return;
     }
     case "create_work_order": {

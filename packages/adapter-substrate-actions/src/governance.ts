@@ -37,12 +37,13 @@ type PapiSigner = import("polkadot-api").PolkadotSigner;
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function toTxReceipt(txHash: string, chain: ChainRef, blockHash?: string): TxReceipt {
-  return {
+  const receipt: TxReceipt = {
     txHash,
     chain,
-    blockHash,
     finality: "included",
   };
+  if (blockHash !== undefined) receipt.blockHash = blockHash;
+  return receipt;
 }
 
 const NEEDS_CODEGEN =
@@ -65,9 +66,9 @@ export class SubstrateGovernanceActionsAdapter implements GovernanceActionsPort 
   constructor(config: SubstrateActionsConfig = {}) {
     this.config = {
       rpcUrl: config.rpcUrl ?? "ws://127.0.0.1:9944",
-      signer: config.signer,
       chainId: config.chainId ?? "substrate:vibly-solo",
     };
+    if (config.signer !== undefined) this.config.signer = config.signer;
   }
 
   // ── Lazy PAPI client initialization ─────────────────────────────────────────
@@ -114,8 +115,8 @@ export class SubstrateGovernanceActionsAdapter implements GovernanceActionsPort 
       },
       title: input.title,
       status: "draft",
-      metadata: input.metadata,
     };
+    if (input.metadata !== undefined) summary.metadata = input.metadata;
     return { chain: input.chain, actor: input.actor, payload, summary };
   }
 

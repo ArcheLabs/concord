@@ -13,7 +13,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createConcord } from "./index.js";
 import { MockLedger, MockFundingGateway as MockLedgerFundingGateway } from "@concord/adapters-mock-ledger";
-import { makeId } from "@concord/foundation";
+import { makeId, version } from "@concord/foundation";
 
 describe("E2E: M10 → M11 → M13", () => {
   let sdk: ReturnType<typeof createConcord>;
@@ -38,7 +38,7 @@ describe("E2E: M10 → M11 → M13", () => {
     // ── M10: Submit and process external input ──────────────────────────────
     const { input, queueItem } = await sdk.externalInputs.processInput(
       projectId,
-      { kind: "webhook", namespace: "github", externalId: "issue-42" },
+      { kind: "github_issue", namespace: "github", externalId: "issue-42" },
       {
         title: "Crash on startup",
         body: "Null pointer in init.ts",
@@ -58,6 +58,7 @@ describe("E2E: M10 → M11 → M13", () => {
       role: "observer",
       strategy: "reputation_weighted",
       filters: [],
+      version: version(),
     });
 
     const selected = await sdk.selection.select(
@@ -97,7 +98,7 @@ describe("E2E: M10 → M11 → M13", () => {
     // ── M13: Propose and approve reward ────────────────────────────────────
     const reward = await sdk.incentives.proposeReward(
       projectId,
-      "work_completion",
+      "work_reward",
       workerId,
       { asset: "USDC", amount: "100" },
       "completed external input investigation",
@@ -117,9 +118,6 @@ describe("E2E: M10 → M11 → M13", () => {
     const claimed = await sdk.incentives.markClaimed(reward.id);
     expect(claimed.status).toBe("claimed");
 
-    const settled = await sdk.incentives.markSettled(reward.id);
-    expect(settled.status).toBe("settled");
-
     // ── M13: Settlement intent ──────────────────────────────────────────────
     const settlementIntent = await sdk.settlement.createSettlementIntent(
       projectId,
@@ -129,6 +127,9 @@ describe("E2E: M10 → M11 → M13", () => {
       "reward settlement for external input work",
     );
     expect(settlementIntent.status).toBe("pending");
+
+    const settled = await sdk.incentives.markSettled(reward.id, settlementIntent.id);
+    expect(settled.status).toBe("settled");
 
     const { intent: processed } = await sdk.settlement.processSettlement(settlementIntent.id);
     expect(processed.status).toBe("completed");

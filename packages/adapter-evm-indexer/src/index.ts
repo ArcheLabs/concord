@@ -16,7 +16,12 @@ import { EvmFixtureGovernanceQuery } from "./evmFixtureQuery.js";
 
 export { EvmFixtureGovernanceFeed } from "./evmFixtureFeed.js";
 export { EvmFixtureGovernanceQuery } from "./evmFixtureQuery.js";
-export { EVM_FIXTURE_PROPOSALS } from "./fixtures.js";
+export {
+  EVM_FIXTURE_PROPOSALS,
+  EVM_FIXTURE_VOTES,
+  toEvmFixtureVoteReceipt,
+} from "./fixtures.js";
+export type { EvmFixtureVote, EvmFixtureVoteReceipt } from "./fixtures.js";
 
 // ─── Convenience composite adapter ───────────────────────────────────────────
 

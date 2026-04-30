@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
+import type { GovernanceVoteActivityView } from "@concord/governance";
 import {
   EvmFixtureGovernanceIndexAdapter,
   EvmFixtureGovernanceFeed,
   EvmFixtureGovernanceQuery,
   EVM_FIXTURE_PROPOSALS,
+  EVM_FIXTURE_VOTES,
 } from "./index.js";
 
-const EVM_CHAIN = { namespace: "evm", chainId: "31337" } as const;
+const EVM_CHAIN = { namespace: "eip155", chainId: "31337" } as const;
 
 describe("EvmFixtureGovernanceIndexAdapter", () => {
   it("can be instantiated", () => {
@@ -29,13 +31,13 @@ describe("EvmFixtureGovernanceIndexAdapter", () => {
 });
 
 describe("EvmFixtureGovernanceFeed", () => {
-  it("emits all fixture proposals as NormalizedChainEvent", async () => {
+  it("emits fixture proposals and votes as NormalizedChainEvent", async () => {
     const feed = new EvmFixtureGovernanceFeed();
     const events = [];
     for await (const event of feed.subscribeGovernanceEvents({ chain: EVM_CHAIN })) {
       events.push(event);
     }
-    expect(events.length).toBe(EVM_FIXTURE_PROPOSALS.length);
+    expect(events.length).toBe(EVM_FIXTURE_PROPOSALS.length + EVM_FIXTURE_VOTES.length);
   });
 
   it("all events have backend=evm-governor in payload ref", async () => {
@@ -76,6 +78,27 @@ describe("EvmFixtureGovernanceFeed", () => {
     expect(executed).toBeDefined();
     expect(executed?.finality).toBe("finalized");
   });
+
+  it("emits VoteCast fixture events with normalized support stances", async () => {
+    const feed = new EvmFixtureGovernanceFeed();
+    const events = [];
+    for await (const event of feed.subscribeGovernanceEvents({ chain: EVM_CHAIN })) {
+      events.push(event);
+    }
+
+    const voteEvents = events.filter((event) => event.type === "GovernanceVoteCast");
+    expect(voteEvents.length).toBe(EVM_FIXTURE_VOTES.length);
+    expect(voteEvents.map((event) => (event.payload as { stance?: string }).stance)).toEqual([
+      "support",
+      "oppose",
+      "abstain",
+    ]);
+    expect(voteEvents.map((event) => (event.payload as { metadata?: { evmSupport?: number } }).metadata?.evmSupport)).toEqual([
+      1,
+      0,
+      2,
+    ]);
+  });
 });
 
 describe("EvmFixtureGovernanceQuery", () => {
@@ -84,7 +107,7 @@ describe("EvmFixtureGovernanceQuery", () => {
     const checkpoint = await query.getGovernanceCheckpoint({ chain: EVM_CHAIN });
     expect(checkpoint).not.toBeNull();
     expect(checkpoint?.chain).toEqual(EVM_CHAIN);
-    expect(checkpoint?.cursor.blockNumber).toBe("200");
+    expect(checkpoint?.cursor.blockNumber).toBe(200n);
   });
 
   it("getGovernanceState returns known proposal by externalId", async () => {
@@ -187,7 +210,52 @@ describe("E2E: EVM fixture event → projection", () => {
     };
 
     expect(subjectView.backend).toBe("evm-governor");
-    expect(subjectView.chain.namespace).toBe("evm");
+    expect(subjectView.chain.namespace).toBe("eip155");
     expect(subjectView.externalId).toBeTruthy();
+  });
+
+  it("projector can produce a GovernanceVoteActivityView from EVM VoteCast event", async () => {
+    const feed = new EvmFixtureGovernanceFeed();
+    const events = [];
+    for await (const event of feed.subscribeGovernanceEvents({ chain: EVM_CHAIN })) {
+      events.push(event);
+    }
+
+    const voteEvent = events.find((event) => event.type === "GovernanceVoteCast");
+    expect(voteEvent).toBeDefined();
+
+    const payload = voteEvent!.payload as {
+      ref: { externalId: string; backend: "evm-governor" };
+      voter: string;
+      stance: string;
+      weight?: string;
+      metadata?: Record<string, unknown>;
+    };
+
+    const subjectId = `${EVM_CHAIN.namespace}:${EVM_CHAIN.chainId}:${payload.ref.externalId}`;
+    const voteView: GovernanceVoteActivityView = {
+      id: `${subjectId}:vote:${payload.voter}`,
+      subjectId,
+      chain: EVM_CHAIN,
+      backend: payload.ref.backend,
+      externalId: payload.ref.externalId,
+      voter: payload.voter,
+      stance: payload.stance,
+      finality: voteEvent!.finality === "safe" ? "included" : voteEvent!.finality,
+      source: { adapter: "evm-fixture" },
+      projection: {
+        version: "1",
+        hash: voteEvent!.id,
+        projectedAt: voteEvent!.observedAt,
+        projector: "EvmFixtureGovernanceFeedTest",
+      },
+    };
+    if (payload.weight !== undefined) voteView.balance = payload.weight;
+    if (payload.metadata !== undefined) voteView.metadata = payload.metadata;
+
+    expect(voteView.backend).toBe("evm-governor");
+    expect(voteView.subjectId).toBe("eip155:31337:prop_evm_1");
+    expect(voteView.stance).toBe("support");
+    expect(voteView.metadata?.["evmSupport"]).toBe(1);
   });
 });

@@ -9,7 +9,7 @@
 
 import type { ChainRef, IndexCursor, NormalizedChainEvent } from "@concord/core";
 import type { GovernanceIndexFeedPort, GovernanceEventType } from "@concord/governance";
-import { EVM_FIXTURE_PROPOSALS } from "./fixtures.js";
+import { EVM_FIXTURE_PROPOSALS, EVM_FIXTURE_VOTES, toEvmFixtureVoteReceipt } from "./fixtures.js";
 
 export class EvmFixtureGovernanceFeed implements GovernanceIndexFeedPort {
   async *subscribeGovernanceEvents(input: {
@@ -29,6 +29,21 @@ export class EvmFixtureGovernanceFeed implements GovernanceIndexFeedPort {
         blockNumber,
         observedAt: proposal.updatedAt ?? new Date().toISOString(),
         finality: proposal.status === "Executed" ? "finalized" : "pending",
+      };
+      yield event;
+    }
+
+    for (let i = 0; i < EVM_FIXTURE_VOTES.length; i++) {
+      const vote = EVM_FIXTURE_VOTES[i]!;
+      const receipt = toEvmFixtureVoteReceipt(vote);
+      const event: NormalizedChainEvent<GovernanceEventType> = {
+        id: `evm-fixture:${vote.proposalExternalId}:vote:${vote.voter}`,
+        chain: input.chain,
+        type: "GovernanceVoteCast",
+        payload: receipt,
+        blockNumber: BigInt(150 + i),
+        observedAt: vote.submittedAt,
+        finality: "included",
       };
       yield event;
     }

@@ -7,7 +7,7 @@ import {
 } from "./evmStatusMapping.js";
 import { EvmGovernanceActionsAdapter } from "./evmGovernanceActionsAdapter.js";
 
-const EVM_CHAIN = { namespace: "evm", chainId: "31337" } as const;
+const EVM_CHAIN = { namespace: "eip155", chainId: "31337" } as const;
 const EVM_REF = { chain: EVM_CHAIN, backend: "evm-governor" as const, externalId: "1" };
 
 describe("evmStatusMapping — mapEvmStateToStatus", () => {
