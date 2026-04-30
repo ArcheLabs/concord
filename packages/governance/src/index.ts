@@ -17,3 +17,21 @@ export type {
   GovernanceIndexQueryPort,
   ServiceChainActionsPort,
 } from "./ports.js";
+
+export type {
+  ChainProjectionCursor,
+  ProjectionFinality,
+  ProjectionSource,
+  ProjectionMetadata,
+  GovernanceSubjectView,
+  GovernanceVoteActivityView,
+  GovernanceDelegationView,
+  GovernanceCheckpointView,
+  GovernanceIntentLinkSource,
+  GovernanceIntentLinkConfidence,
+  GovernanceIntentChainLink,
+  GovernanceMergedStatus,
+  GovernanceMergedView,
+  GovernanceProjectionPatch,
+  GovernanceProjector,
+} from "./views.js";
