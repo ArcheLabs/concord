@@ -227,6 +227,25 @@ importers:
         specifier: ^3.0.0
         version: 3.2.4(@types/node@25.6.0)(tsx@4.21.0)(yaml@2.8.3)
 
+  packages/adapter-evm-indexer:
+    dependencies:
+      '@concord/chain-indexing':
+        specifier: workspace:*
+        version: link:../chain-indexing
+      '@concord/core':
+        specifier: workspace:*
+        version: link:../core
+      '@concord/governance':
+        specifier: workspace:*
+        version: link:../governance
+    devDependencies:
+      typescript:
+        specifier: ~5.4.0
+        version: 5.4.5
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/node@25.6.0)(tsx@4.21.0)(yaml@2.8.3)
+
   packages/adapter-substrate-actions:
     dependencies:
       '@concord/core':
