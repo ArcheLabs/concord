@@ -46,7 +46,7 @@ describe("@concord/adapter-substrate-actions", () => {
     expect(payload.pollIndex).toBe(42);
   });
 
-  it("submitProposal throws (not implemented)", async () => {
+  it("submitProposal requires a signer or injected submitter", async () => {
     const adapter = new SubstrateGovernanceActionsAdapter();
     await expect(
       adapter.submitProposal({
@@ -54,6 +54,57 @@ describe("@concord/adapter-substrate-actions", () => {
         actor: "Alice",
         payload: {},
       }),
-    ).rejects.toThrow("not implemented");
+    ).rejects.toThrow("no transaction submitter configured");
+  });
+
+  it("submitProposal delegates normalized OpenGov payload to injected submitter", async () => {
+    const chain = { namespace: "substrate" as const, chainId: "substrate:vibly-solo" };
+    const adapter = new SubstrateGovernanceActionsAdapter({
+      submitter: async (input) => {
+        expect(input.pallet).toBe("Referenda");
+        expect(input.call).toBe("submit");
+        expect(input.args).toEqual({ proposal: "0xproposal", enactment: "After" });
+        return { txHash: "0xsubmit", chain: input.chain, finality: "included" };
+      },
+    });
+
+    const receipt = await adapter.submitProposal({
+      chain,
+      actor: "Alice",
+      payload: {
+        pallet: "Referenda",
+        call: "submit",
+        args: { proposal: "0xproposal", enactment: "After" },
+      },
+    });
+
+    expect(receipt.txHash).toBe("0xsubmit");
+  });
+
+  it("castVote delegates normalized vote payload to injected submitter", async () => {
+    const subject = {
+      chain: { namespace: "substrate" as const, chainId: "substrate:vibly-solo" },
+      backend: "substrate-opengov" as const,
+      externalId: "42",
+    };
+    const adapter = new SubstrateGovernanceActionsAdapter({
+      submitter: async (input) => {
+        expect(input.pallet).toBe("ConvictionVoting");
+        expect(input.call).toBe("vote");
+        expect(input.args).toMatchObject({ poll_index: 42 });
+        return { txHash: "0xvote", chain: input.chain, finality: "included" };
+      },
+    });
+    const prepared = await adapter.prepareVote({
+      subject,
+      voter: "Alice",
+      stance: "aye",
+      weight: "2000000000",
+      metadata: { conviction: 1 },
+    });
+
+    const receipt = await adapter.castVote({ subject, voter: "Alice", payload: prepared.payload });
+
+    expect(receipt.txHash).toBe("0xvote");
   });
 });

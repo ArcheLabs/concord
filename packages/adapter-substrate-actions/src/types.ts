@@ -21,8 +21,28 @@ export interface SubstrateActionsConfig {
   signer?: import("polkadot-api").PolkadotSigner;
 
   /**
+   * Optional transaction submitter used by local scripts, tests, or generated
+   * PAPI bindings. When provided, the adapter delegates signed submission to
+   * this function after validating and normalizing the governance payload.
+   */
+  submitter?: SubstrateTxSubmitter;
+
+  /**
    * A human-readable chain identifier stored in ChainRef.chainId.
    * @default "substrate:vibly-solo"
    */
   chainId?: string;
 }
+
+export interface SubstrateTxSubmitInput {
+  chain: import("@concord/core").ChainRef;
+  actor: string;
+  pallet: string;
+  call: string;
+  args: unknown;
+  payload: unknown;
+}
+
+export type SubstrateTxSubmitter = (
+  input: SubstrateTxSubmitInput,
+) => Promise<import("@concord/core").TxReceipt>;

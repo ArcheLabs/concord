@@ -25,7 +25,7 @@ import type {
   GovernanceProposalSummary,
 } from "@concord/governance";
 import type { ChainRef, TxReceipt } from "@concord/core";
-import type { SubstrateActionsConfig } from "./types.js";
+import type { SubstrateActionsConfig, SubstrateTxSubmitter } from "./types.js";
 
 // ─── PAPI lazy import ─────────────────────────────────────────────────────────
 // polkadot-api is an optional peer; we import dynamically so the package can
@@ -33,23 +33,35 @@ import type { SubstrateActionsConfig } from "./types.js";
 
 type PapiClient = import("polkadot-api").PolkadotClient;
 type PapiSigner = import("polkadot-api").PolkadotSigner;
+type PapiTxFinalizedPayload = {
+  txHash: string;
+  ok?: boolean;
+  block?: { hash?: string; number?: number | bigint };
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function toTxReceipt(txHash: string, chain: ChainRef, blockHash?: string): TxReceipt {
+function toTxReceipt(
+  txHash: string,
+  chain: ChainRef,
+  blockHash?: string,
+  blockNumber?: number | bigint,
+  finality: TxReceipt["finality"] = "included",
+): TxReceipt {
   const receipt: TxReceipt = {
     txHash,
     chain,
-    finality: "included",
+    finality,
   };
   if (blockHash !== undefined) receipt.blockHash = blockHash;
+  if (blockNumber !== undefined) receipt.blockNumber = BigInt(blockNumber);
   return receipt;
 }
 
-const NEEDS_CODEGEN =
-  "This method requires PAPI descriptors generated via:\n" +
-  "  pnpm dlx @polkadot-api/cli add vibly-solo --wsUrl ws://127.0.0.1:9944\n" +
-  "After codegen, replace the typed API calls in governance.ts.";
+const NEEDS_SUBMITTER =
+  "SubstrateGovernanceActionsAdapter: no transaction submitter configured. " +
+  "Provide config.submitter from generated PAPI bindings, or enable the " +
+  "experimental unsafe PAPI submit path with config.signer.";
 
 const NO_SIGNER =
   "SubstrateGovernanceActionsAdapter: no signer configured. " +
@@ -60,7 +72,7 @@ const NO_SIGNER =
 export class SubstrateGovernanceActionsAdapter implements GovernanceActionsPort {
   readonly kind = "substrate-opengov" as const;
 
-  private readonly config: { rpcUrl: string; signer?: PapiSigner; chainId: string };
+  private readonly config: { rpcUrl: string; signer?: PapiSigner; chainId: string; submitter?: SubstrateTxSubmitter };
   private _client: PapiClient | null = null;
 
   constructor(config: SubstrateActionsConfig = {}) {
@@ -69,6 +81,7 @@ export class SubstrateGovernanceActionsAdapter implements GovernanceActionsPort 
       chainId: config.chainId ?? "substrate:vibly-solo",
     };
     if (config.signer !== undefined) this.config.signer = config.signer;
+    if (config.submitter !== undefined) this.config.submitter = config.submitter;
   }
 
   // ── Lazy PAPI client initialization ─────────────────────────────────────────
@@ -100,13 +113,15 @@ export class SubstrateGovernanceActionsAdapter implements GovernanceActionsPort 
     payload: unknown;
     summary: GovernanceProposalSummary;
   }> {
-    // Phase B: prepare-only (no submission), return structured payload
-    const payload = {
+    const payload: Record<string, unknown> = {
       type: "substrate-opengov-submit-referendum",
+      pallet: "Referenda",
+      call: "submit",
       title: input.title,
-      description: input.description,
-      metadata: input.metadata,
+      args: input.metadata?.["submitArgs"] ?? input.metadata?.["args"] ?? null,
     };
+    if (input.description !== undefined) payload["description"] = input.description;
+    if (input.metadata !== undefined) payload["metadata"] = input.metadata;
     const summary: GovernanceProposalSummary = {
       ref: {
         chain: input.chain,
@@ -125,12 +140,17 @@ export class SubstrateGovernanceActionsAdapter implements GovernanceActionsPort 
     actor: string;
     payload: unknown;
   }): Promise<TxReceipt> {
-    // Full referendum submission requires a preimage + referenda.submit call.
-    // Out of scope for Phase B — throw a descriptive error.
-    throw new Error(
-      "SubstrateGovernanceActionsAdapter.submitProposal: not implemented in Phase B. " +
-        "Use the vibly-chain governance UI or a direct PAPI script.",
-    );
+    const tx = normalizeTxPayload(input.payload, {
+      pallet: "Referenda",
+      call: "submit",
+      fallbackArgs: asRecord(input.payload)["args"],
+    });
+    return this.submitGovernanceTx({
+      chain: input.chain,
+      actor: input.actor,
+      payload: input.payload,
+      ...tx,
+    });
   }
 
   async prepareVote(input: {
@@ -151,7 +171,13 @@ export class SubstrateGovernanceActionsAdapter implements GovernanceActionsPort 
     const balance = BigInt(input.weight ?? "1000000000"); // 1 UNIT default
     const payload = {
       type: "convictionVoting.vote",
+      pallet: "ConvictionVoting",
+      call: "vote",
       pollIndex: Number(input.subject.externalId),
+      args: {
+        poll_index: Number(input.subject.externalId),
+        vote: encodeAccountVote(input.stance, conviction, balance),
+      },
       vote: encodeAccountVote(input.stance, conviction, balance),
     };
     return { subject: input.subject, voter: input.voter, payload };
@@ -162,12 +188,17 @@ export class SubstrateGovernanceActionsAdapter implements GovernanceActionsPort 
     voter: string;
     payload: unknown;
   }): Promise<TxReceipt> {
-    // Requires PAPI codegen descriptors to call typed extrinsics.
-    // Run `pnpm dlx @polkadot-api/cli add vibly-solo --wsUrl ws://127.0.0.1:9944`
-    // to generate descriptors and implement typed convictionVoting.vote() here.
-    void this.getClient(); // validate rpcUrl format eagerly
-    void this.getSigner(); // validate signer is configured
-    throw new Error(`castVote: ${NEEDS_CODEGEN}`);
+    const tx = normalizeTxPayload(input.payload, {
+      pallet: "ConvictionVoting",
+      call: "vote",
+      fallbackArgs: asRecord(input.payload)["args"],
+    });
+    return this.submitGovernanceTx({
+      chain: input.subject.chain,
+      actor: input.voter,
+      payload: input.payload,
+      ...tx,
+    });
   }
 
   async delegate(input: {
@@ -178,8 +209,20 @@ export class SubstrateGovernanceActionsAdapter implements GovernanceActionsPort 
     conviction?: string;
     metadata?: Record<string, unknown>;
   }): Promise<TxReceipt> {
-    void this.getSigner();
-    throw new Error(`delegate: ${NEEDS_CODEGEN}`);
+    const args = {
+      class: Number(input.scope ?? "0"),
+      to: input.delegatee,
+      conviction: parseConviction(input.conviction ?? "0"),
+      balance: BigInt(String(input.metadata?.["balance"] ?? "1000000000")),
+    };
+    return this.submitGovernanceTx({
+      chain: input.chain,
+      actor: input.delegator,
+      pallet: "ConvictionVoting",
+      call: "delegate",
+      args,
+      payload: { type: "convictionVoting.delegate", args },
+    });
   }
 
   async undelegate(input: {
@@ -187,8 +230,15 @@ export class SubstrateGovernanceActionsAdapter implements GovernanceActionsPort 
     delegator: string;
     scope?: string;
   }): Promise<TxReceipt> {
-    void this.getSigner();
-    throw new Error(`undelegate: ${NEEDS_CODEGEN}`);
+    const args = { class: Number(input.scope ?? "0") };
+    return this.submitGovernanceTx({
+      chain: input.chain,
+      actor: input.delegator,
+      pallet: "ConvictionVoting",
+      call: "undelegate",
+      args,
+      payload: { type: "convictionVoting.undelegate", args },
+    });
   }
 
   async unlockOrReclaim(input: {
@@ -196,8 +246,17 @@ export class SubstrateGovernanceActionsAdapter implements GovernanceActionsPort 
     actor: string;
     subject?: GovernanceSubjectRef;
   }): Promise<TxReceipt> {
-    void this.getSigner();
-    throw new Error(`unlockOrReclaim: ${NEEDS_CODEGEN}`);
+    const args = input.subject
+      ? { class: 0, target: input.actor, index: Number(input.subject.externalId) }
+      : { class: 0, target: input.actor };
+    return this.submitGovernanceTx({
+      chain: input.chain,
+      actor: input.actor,
+      pallet: "ConvictionVoting",
+      call: "unlock",
+      args,
+      payload: { type: "convictionVoting.unlock", args },
+    });
   }
 
   /** Gracefully disconnect the PAPI WebSocket. */
@@ -206,6 +265,41 @@ export class SubstrateGovernanceActionsAdapter implements GovernanceActionsPort 
       this._client.destroy();
       this._client = null;
     }
+  }
+
+  private async submitGovernanceTx(input: {
+    chain: ChainRef;
+    actor: string;
+    pallet: string;
+    call: string;
+    args: unknown;
+    payload: unknown;
+  }): Promise<TxReceipt> {
+    if (this.config.submitter) return this.config.submitter(input);
+    const signer = this.config.signer;
+    if (!signer) throw new Error(NEEDS_SUBMITTER);
+    const client = await this.getClient();
+    const api = client.getUnsafeApi<unknown>();
+    const palletApi = selectEntry(api.tx, input.pallet);
+    const callApi = selectEntry(palletApi, input.call);
+    if (typeof callApi !== "function") {
+      throw new Error(`SubstrateGovernanceActionsAdapter: tx ${input.pallet}.${input.call} is not available`);
+    }
+    const tx = callApi(input.args) as { signAndSubmit?: (signer: PapiSigner) => Promise<PapiTxFinalizedPayload> };
+    if (typeof tx.signAndSubmit !== "function") {
+      throw new Error(`SubstrateGovernanceActionsAdapter: tx ${input.pallet}.${input.call} cannot be submitted`);
+    }
+    const result = await tx.signAndSubmit(signer);
+    if (result.ok === false) {
+      throw new Error(`SubstrateGovernanceActionsAdapter: tx ${input.pallet}.${input.call} failed on chain`);
+    }
+    return toTxReceipt(
+      result.txHash,
+      input.chain,
+      result.block?.hash,
+      result.block?.number,
+      "finalized",
+    );
   }
 }
 
@@ -266,4 +360,33 @@ function convictionEnum(n: number): string {
 function parseConviction(s: string): string {
   if (/^\d+$/.test(s)) return convictionEnum(Number(s));
   return s;
+}
+
+function normalizeTxPayload(
+  payload: unknown,
+  fallback: { pallet: string; call: string; fallbackArgs?: unknown },
+): { pallet: string; call: string; args: unknown } {
+  const record = asRecord(payload);
+  return {
+    pallet: String(record["pallet"] ?? fallback.pallet),
+    call: String(record["call"] ?? fallback.call),
+    args: record["args"] ?? fallback.fallbackArgs ?? {},
+  };
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" ? value as Record<string, unknown> : {};
+}
+
+function selectEntry(root: unknown, key: string): unknown {
+  const record = asRecord(root);
+  return record[key] ?? record[lowerFirst(key)] ?? record[upperFirst(key)];
+}
+
+function lowerFirst(value: string): string {
+  return value.charAt(0).toLowerCase() + value.slice(1);
+}
+
+function upperFirst(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
