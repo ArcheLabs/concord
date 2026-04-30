@@ -13,4 +13,7 @@ export type {
   GovernanceActionsPort,
   GovernanceQueryPort,
   GovernanceIndexerPort,
+  GovernanceIndexFeedPort,
+  GovernanceIndexQueryPort,
+  ServiceChainActionsPort,
 } from "./ports.js";

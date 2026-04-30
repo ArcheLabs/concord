@@ -3,6 +3,9 @@ import type {
   GovernanceActionsPort,
   GovernanceQueryPort,
   GovernanceIndexerPort,
+  GovernanceIndexFeedPort,
+  GovernanceIndexQueryPort,
+  ServiceChainActionsPort,
   GovernanceProposalSummary,
   GovernanceEventType,
 } from "./index.js";
@@ -82,5 +85,26 @@ describe("governance exports", () => {
       async resolveState() { return null; },
     };
     expect(typeof port.backfill).toBe("function");
+  });
+
+  it("GovernanceIndexFeedPort shape is satisfiable", () => {
+    const port: GovernanceIndexFeedPort = {
+      async *subscribeGovernanceEvents() { /* empty */ },
+    };
+    expect(typeof port.subscribeGovernanceEvents).toBe("function");
+  });
+
+  it("GovernanceIndexQueryPort shape is satisfiable", () => {
+    const port: GovernanceIndexQueryPort = {
+      async getGovernanceCheckpoint() { return null; },
+      async getGovernanceState() { return null; },
+      async listGovernanceSubjects() { return { items: [] }; },
+    };
+    expect(typeof port.listGovernanceSubjects).toBe("function");
+  });
+
+  it("ServiceChainActionsPort shape is satisfiable", () => {
+    const port: ServiceChainActionsPort = {};
+    expect(typeof port).toBe("object");
   });
 });

@@ -130,7 +130,9 @@ export interface GovernanceQueryPort {
   } | null>;
 }
 
-// ─── Indexer Port ────────────────────────────────────────────────────────────
+// ─── Indexer Port (implementation-side) ─────────────────────────────────────
+// Use GovernanceIndexFeedPort / GovernanceIndexQueryPort for coordinator-side
+// consumption. This port is for local / embedded indexer implementations.
 
 export interface GovernanceIndexerPort {
   readonly kind: GovernanceBackendKind;
@@ -150,4 +152,47 @@ export interface GovernanceIndexerPort {
     chain: ChainRef;
     ref: GovernanceSubjectRef;
   }): Promise<GovernanceProposalSummary | null>;
+}
+
+// ─── Index Feed Port (coordinator consumer-side) ─────────────────────────────
+// Coordinator depends on this port. Backed by external indexer (SubQuery) or
+// by an embedded GovernanceIndexerPort wrapped as feed.
+
+export interface GovernanceIndexFeedPort {
+  subscribeGovernanceEvents(input: {
+    chain: ChainRef;
+    from?: IndexCursor;
+  }): AsyncIterable<NormalizedChainEvent<GovernanceEventType>>;
+}
+
+// ─── Index Query Port (coordinator consumer-side) ────────────────────────────
+
+export interface GovernanceIndexQueryPort {
+  getGovernanceCheckpoint(input: {
+    chain: ChainRef;
+  }): Promise<import("@concord/chain-indexing").ChainCheckpoint | null>;
+
+  getGovernanceState(input: {
+    chain: ChainRef;
+    ref: GovernanceSubjectRef;
+  }): Promise<GovernanceProposalSummary | null>;
+
+  listGovernanceSubjects(input: {
+    chain: ChainRef;
+    limit?: number;
+    cursor?: string;
+  }): Promise<{
+    items: GovernanceProposalSummary[];
+    nextCursor?: string;
+  }>;
+}
+
+// ─── Service Chain Actions Port (coordinator service-identity only) ───────────
+// For coordinator's own service account actions. NOT for user governance.
+
+export interface ServiceChainActionsPort {
+  airdrop?(input: unknown): Promise<TxReceipt>;
+  swap?(input: unknown): Promise<TxReceipt>;
+  distributeReward?(input: unknown): Promise<TxReceipt>;
+  performMaintenance?(input: unknown): Promise<TxReceipt>;
 }

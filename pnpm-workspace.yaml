@@ -2,3 +2,4 @@ packages:
   - "packages/*"
   - "apps/*"
   - "../vibly-coordinator"
+  - "../vibly-client"

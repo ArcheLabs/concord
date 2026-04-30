@@ -65,6 +65,9 @@ import type {
   GovernanceActionsPort,
   GovernanceQueryPort,
   GovernanceIndexerPort,
+  GovernanceIndexFeedPort,
+  GovernanceIndexQueryPort,
+  ServiceChainActionsPort,
 } from "@concord/governance";
 import type {
   AgentDirectoryActionsPort,
@@ -120,6 +123,10 @@ export interface ConcordConfig {
   governanceProjection?: GovernanceProjectionPort;
   agentDirectoryProjection?: AgentDirectoryProjectionPort;
   trustViewProjection?: TrustViewProjectionPort;
+  // Chain-First – Index Consumer Ports (coordinator-side)
+  governanceIndexFeed?: GovernanceIndexFeedPort;
+  governanceIndexQuery?: GovernanceIndexQueryPort;
+  serviceChainActions?: ServiceChainActionsPort;
 }
 
 export interface LoopResult {
@@ -180,6 +187,9 @@ export interface Concord {
   // M13 – Incentive / Settlement / Ledger
   incentives: IncentiveService;
   settlement: SettlementService;
+  // Chain-First – Index Consumer Ports (optional, coordinator-side)
+  governanceIndexQuery?: GovernanceIndexQueryPort;
+  serviceChainActions?: ServiceChainActionsPort;
 }
 
 export function createConcord(config: ConcordConfig = {}): Concord {
@@ -257,6 +267,8 @@ export function createConcord(config: ConcordConfig = {}): Concord {
     reputation: reputationService,
     incentives: config.incentiveService ?? new InMemoryIncentiveService(config.m13FundingGateway),
     settlement: config.settlementService ?? new InMemorySettlementService(),
+    governanceIndexQuery: config.governanceIndexQuery,
+    serviceChainActions: config.serviceChainActions,
   };
 }
 

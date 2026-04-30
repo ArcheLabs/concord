@@ -8,6 +8,6 @@
   "references": [
     { "path": "../foundation" },
     { "path": "../core" },
-    { "path": "../chain-indexing" }
+    { "path": "../governance" }
   ]
 }
