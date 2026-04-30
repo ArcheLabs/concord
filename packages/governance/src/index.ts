@@ -1,10 +1,19 @@
 export type {
   GovernanceBackendKind,
+  GovernanceBackendCapabilities,
+  GovernanceBackendSourceKind,
+  GovernanceBackendSource,
+  GovernanceBackendDescriptor,
   GovernanceSubjectRef,
   GovernanceProposalSummary,
   GovernanceVoteStance,
   GovernanceVoteReceipt,
   GovernanceDelegationState,
+} from "./types.js";
+
+export {
+  defaultSubstrateCapabilities,
+  defaultEvmCapabilities,
 } from "./types.js";
 
 export type { GovernanceEventType } from "./events.js";

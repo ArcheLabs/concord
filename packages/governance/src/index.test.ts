@@ -16,7 +16,10 @@ import type {
   GovernanceMergedView,
   GovernanceProjectionPatch,
   GovernanceProjector,
+  GovernanceBackendDescriptor,
+  GovernanceBackendCapabilities,
 } from "./index.js";
+import { defaultSubstrateCapabilities, defaultEvmCapabilities } from "./index.js";
 
 describe("governance exports", () => {
   it("GovernanceEventType covers expected events", () => {
@@ -235,5 +238,52 @@ describe("governance view type exports", () => {
       project: () => [],
     };
     expect(typeof projector.project).toBe("function");
+  });
+});
+
+describe("governance backend descriptor", () => {
+  it("GovernanceBackendDescriptor can be constructed for substrate", () => {
+    const descriptor: GovernanceBackendDescriptor = {
+      id: "substrate:vibly-solo",
+      backend: "substrate-opengov",
+      chain: { namespace: "substrate", chainId: "vibly-solo" },
+      displayName: "Vibly Solo (OpenGov)",
+      source: { kind: "subquery", endpoint: "http://localhost:3010/graphql" },
+      capabilities: defaultSubstrateCapabilities(),
+    };
+    expect(descriptor.backend).toBe("substrate-opengov");
+    expect(descriptor.source.kind).toBe("subquery");
+  });
+
+  it("GovernanceBackendDescriptor can be constructed for EVM", () => {
+    const descriptor: GovernanceBackendDescriptor = {
+      id: "evm:31337",
+      backend: "evm-governor",
+      chain: { namespace: "evm", chainId: "31337" },
+      displayName: "EVM Governor (fixture)",
+      source: { kind: "fixture" },
+      capabilities: defaultEvmCapabilities(),
+    };
+    expect(descriptor.backend).toBe("evm-governor");
+    expect(descriptor.source.kind).toBe("fixture");
+  });
+
+  it("defaultSubstrateCapabilities has expected values", () => {
+    const caps: GovernanceBackendCapabilities = defaultSubstrateCapabilities();
+    expect(caps.readSubjects).toBe(true);
+    expect(caps.delegate).toBe(true);
+    expect(caps.supportsWeightedVote).toBe(true);
+    expect(caps.queueExecution).toBe(false);
+    expect(caps.executeProposal).toBe(false);
+  });
+
+  it("defaultEvmCapabilities has expected values", () => {
+    const caps: GovernanceBackendCapabilities = defaultEvmCapabilities();
+    expect(caps.readSubjects).toBe(true);
+    expect(caps.delegate).toBe(false);
+    expect(caps.readDelegations).toBe(false);
+    expect(caps.queueExecution).toBe(true);
+    expect(caps.executeProposal).toBe(true);
+    expect(caps.supportsWeightedVote).toBe(false);
   });
 });
