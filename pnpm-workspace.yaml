@@ -3,3 +3,5 @@ packages:
   - "apps/*"
   - "../vibly-coordinator"
   - "../vibly-client"
+  - "../vibly-console"
+  - "../vibly-coordinator-http-contract"

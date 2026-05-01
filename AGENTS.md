@@ -29,3 +29,9 @@ vibly-client / vibly-console  ← consumers
 - Need to script the SDK over a network protocol? Implement it in `vibly-coordinator` and call `@concord/sdk` from there.
 - Need a quick local repro of an SDK feature? Add a script under `apps/mvp-runner` (CLI), or a vitest in the relevant package.
 - Need to share types with `vibly-*` consumers? Export from a `@concord/*` package in TypeScript form. Do not couple to product-side route shapes.
+
+## Cross-repo: HTTP contract authority
+
+The Vibly Coordinator HTTP/SSE contract is owned exclusively by `vibly-coordinator` and surfaced via the `@vibly/coordinator-http-contract` package (in the workspace). All `vibly-*` consumers (`vibly-client`, `vibly-console`) consume that package and may not maintain a competing path table.
+
+If concord ever needs a *concord-side* network shape (it should not, by invariant 5 above), use TypeScript exports inside a `@concord/*` package — never re-publish the coordinator HTTP contract or fork its types.
