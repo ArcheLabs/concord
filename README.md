@@ -8,9 +8,10 @@ Concord 协议内核 — TypeScript-first pnpm monorepo，实现协调协议的�
 pnpm install
 pnpm build
 pnpm test
-pnpm demo    # 运行 MVP 演示循环
-pnpm api     # 启动本地 HTTP API
+pnpm demo    # 运行 MVP 演示循环（SDK CLI，无 HTTP 服务）
 ```
+
+> 本仓库**不提供任何对外 HTTP 服务**。网络协调节点的 REST/SSE 网关由 [`vibly-coordinator`](../vibly-coordinator) 提供，REST/SSE 契约也以该仓库的 Fastify 路由为唯一事实来源。SDK 可被驱动的演示见 `pnpm demo` 与 `pnpm concord ...` CLI。
 
 ## 架构概览
 
@@ -137,6 +138,14 @@ pnpm concord trace replay traces/simple-loop.trace.json
 以下系统通过 port 接口和 mock adapter 表示，不在本 monorepo 中实现：
 
 - EVM 合约、P2P 网络、sybil 防御、slash 裁决
+- 网络协调节点的 REST/SSE 网关（见 `vibly-coordinator`，对外 HTTP 契约的唯一事实来源）
 - Web Console（见 `vibly-console`）
 - 链上 agent 运行时
 - 真实 OpenGov 交易（由 `adapter-substrate-actions` 提供，需运行 `papi add vibly-solo` codegen）
+
+### 分层与依赖方向（不变量）
+
+- `@concord/*`（`packages/`）不得依赖 fastify、express、`@fastify/*` 等 HTTP 框架；任何 HTTP 化能力都在产品仓库内组装。
+- `concord/apps/*` 不得新增对外暴露 HTTP 的服务进程；只允许 CLI / 脚本演示（如 `apps/mvp-runner`）。
+- `concord/*` 不得依赖任何 `vibly-*` 包；依赖方向永远是 `vibly-* → concord`。
+- 命名禁忌：concord 内部不得使用 `coordinator-api`、`vibly-*`、`coordinator-*` 等产品命名空间。

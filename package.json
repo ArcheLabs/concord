@@ -9,7 +9,6 @@
     "test": "pnpm -r --filter './packages/**' --filter './apps/**' test",
     "lint": "pnpm -r --filter './packages/**' --filter './apps/**' lint",
     "demo": "pnpm --filter @concord/mvp-runner dev",
-    "api": "pnpm --filter @concord/coordinator-api dev",
     "concord": "pnpm --filter @concord/mvp-runner concord"
   },
   "devDependencies": {
