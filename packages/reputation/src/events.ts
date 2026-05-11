@@ -11,6 +11,6 @@ export type ReputationScoreUpdatedEvent = EventEnvelope<
   { score: ReputationScore }
 >;
 
-export type ReputationEvent =
+export type ReputationDomainEvent =
   | ReputationEvidenceRecordedEvent
   | ReputationScoreUpdatedEvent;

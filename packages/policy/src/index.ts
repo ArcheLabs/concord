@@ -1,5 +1,6 @@
-import type { ActionIntent, ActionPolicy, ActionPolicyRegistry, Actor, ContextBundle, DecisionRecord, EventStore, PolicyDecision } from "@concord/core";
+import type { LegacyActionIntent, ActionPolicy, ActionPolicyRegistry, Actor, ContextBundle, DecisionRecord, EventStore, PolicyDecision } from "@concord/core";
 import { createEvent, makeId, nowTimestamp } from "@concord/foundation";
+export * from "./mechanism.js";
 
 export class InMemoryActionPolicyRegistry implements ActionPolicyRegistry {
   private readonly policies = new Map<string, ActionPolicy>();
@@ -10,7 +11,7 @@ export class InMemoryActionPolicyRegistry implements ActionPolicyRegistry {
     return this.policies.get(actionType) ?? null;
   }
 
-  async evaluate(input: { action: ActionIntent; actor: Actor; context: ContextBundle }): Promise<PolicyDecision> {
+  async evaluate(input: { action: LegacyActionIntent; actor: Actor; context: ContextBundle }): Promise<PolicyDecision> {
     const policy = await this.getPolicy(input.action.type);
     const decision = policy
       ? this.evaluateKnownPolicy(policy, input.action)
@@ -44,7 +45,7 @@ export class InMemoryActionPolicyRegistry implements ActionPolicyRegistry {
     );
   }
 
-  private evaluateKnownPolicy(policy: ActionPolicy, action: ActionIntent): PolicyDecision {
+  private evaluateKnownPolicy(policy: ActionPolicy, action: LegacyActionIntent): PolicyDecision {
     const base = {
       id: makeId("PolicyDecisionId"),
       actionId: action.id,

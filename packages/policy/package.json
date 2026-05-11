@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@concord/core": "workspace:*",
-    "@concord/foundation": "workspace:*"
+    "@concord/foundation": "workspace:*",
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@concord/state": "workspace:*",

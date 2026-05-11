@@ -27,4 +27,23 @@ describe("mvp runner CLI", () => {
     expect(output.eventCount).toBeGreaterThan(0);
     expect(output.knowledgeHash).toHaveLength(64);
   });
+
+  it("prints a v0.2 organization-aware causal chain demo", async () => {
+    const { stdout } = await execFileAsync("pnpm", ["exec", "tsx", "src/concord.ts", "v02", "demo"], {
+      cwd: appDir,
+      timeout: 20_000,
+    });
+    const output = JSON.parse(stdout) as { intent: string; causalChain: string[] };
+
+    expect(output.intent).toBe("CreateObservationTask");
+    expect(output.causalChain).toEqual([
+      "ObservationTaskCreated",
+      "AssignmentOffered",
+      "ObservationCreated",
+      "DiscussionRoundCreated",
+      "DiscussionOutcomeRecorded",
+      "ProposalSubmitted",
+      "TaskCreated",
+    ]);
+  });
 });

@@ -1,5 +1,5 @@
 import type {
-  ActionIntent,
+  LegacyActionIntent,
   ActionPolicy,
   ActionPolicyRegistry,
   Actor,
@@ -139,7 +139,7 @@ export interface LoopResult {
   };
   goal: Goal;
   contextBundle: ContextBundle;
-  action: ActionIntent;
+  action: LegacyActionIntent;
   policyDecision: PolicyDecision;
   negotiation: NegotiationInstance;
   decisionRecordId: string;
@@ -383,15 +383,15 @@ export class ContextService {
 }
 
 export class ActionService {
-  private readonly actions = new Map<string, ActionIntent>();
+  private readonly actions = new Map<string, LegacyActionIntent>();
 
   constructor(
     private readonly eventStore: EventStore,
     private readonly policyRegistry: ActionPolicyRegistry,
   ) {}
 
-  async propose(input: Omit<ActionIntent, "id" | "createdAt"> & { id?: ActionIntent["id"] }): Promise<ActionIntent> {
-    const action: ActionIntent = {
+  async propose(input: Omit<LegacyActionIntent, "id" | "createdAt"> & { id?: LegacyActionIntent["id"] }): Promise<LegacyActionIntent> {
+    const action: LegacyActionIntent = {
       ...input,
       id: input.id ?? makeId("ActionId"),
       createdAt: nowTimestamp(),
@@ -401,11 +401,11 @@ export class ActionService {
     return action;
   }
 
-  async evaluate(input: { action: ActionIntent; actor: Actor; context: ContextBundle }): Promise<PolicyDecision> {
+  async evaluate(input: { action: LegacyActionIntent; actor: Actor; context: ContextBundle }): Promise<PolicyDecision> {
     return this.policyRegistry.evaluate(input);
   }
 
-  async get(id: string): Promise<ActionIntent | null> {
+  async get(id: string): Promise<LegacyActionIntent | null> {
     return this.actions.get(id) ?? null;
   }
 }
@@ -604,3 +604,112 @@ async function ensureDefaultPolicy(registry: ActionPolicyRegistry): Promise<void
 }
 
 export { MockRuntimeAdapter, ScriptRuntimeAdapter } from "@concord/adapters";
+
+export type {
+  ActionIntent,
+  ActionIntentType,
+  Artifact,
+  AssignmentOffer,
+  AssignmentTimeout,
+  Comment,
+  DiscussionOutcome,
+  DiscussionRound,
+  DiscussionThread,
+  DomainEvent,
+  DomainEventType,
+  MechanismRef,
+  Observation,
+  ObservationTask,
+  Organization,
+  Product,
+  Proposal,
+  Review,
+  ReviewRound,
+  RewardIntent,
+  SettlementBatch,
+  StakePosition,
+  Task,
+  TaskPlan,
+  VotingRound,
+} from "@concord/core";
+export {
+  ActionIntentSchema,
+  DomainEventSchema,
+  ObjectRefSchema,
+  StateEnumSchemas,
+  organizationStatuses,
+  projectStatuses,
+  observationTaskStatuses,
+  assignmentOfferStatuses,
+  observationStatuses,
+  discussionRoundStatuses,
+  votingRoundStatuses,
+  proposalStatuses,
+  taskStatuses,
+  artifactStatuses,
+  rewardIntentStatuses,
+  mechanismStatuses,
+} from "@concord/core";
+export type {
+  ObjectRef,
+  ObjectRefKind,
+  ActionIntentId,
+  OrganizationId,
+  ProductId,
+  HumanPrincipalId,
+  AuthorityRoleId,
+  MechanismId,
+  MechanismVersionId,
+  MechanismInstanceId,
+  ObservationTaskId,
+  AssignmentOfferId,
+  DiscussionThreadId,
+  DiscussionRoundId,
+  DiscussionOutcomeId,
+  ProposalId,
+  VotingRoundId,
+  TaskId,
+  ArtifactId,
+  ReviewRoundId,
+  ReviewId,
+  SettlementBatchId,
+  StakePositionId,
+} from "@concord/foundation";
+export type {
+  AssignmentRule,
+  CoordinationMechanism,
+  EligibilityRule,
+  FailureRule,
+  MechanismInstance,
+  MechanismParams,
+  MechanismTemplate,
+  MechanismVersion,
+  ParticipationRule,
+  ReputationRule,
+  RewardRule,
+  ReviewRule,
+  RuleTree,
+  SubmissionRule,
+  TimeoutRule,
+  VotingRule,
+} from "@concord/policy";
+export {
+  AssignmentRuleSchema,
+  CoordinationMechanismSchema,
+  EligibilityRuleSchema,
+  FailureRuleSchema,
+  ParticipationRuleSchema,
+  ReputationRuleSchema,
+  RewardRuleSchema,
+  ReviewRuleSchema,
+  RuleTreeSchema,
+  SubmissionRuleSchema,
+  TimeoutRuleSchema,
+  VotingRuleSchema,
+} from "@concord/policy";
+export {
+  DeterministicRandomSource,
+  randomFromQualified,
+  rotatingObserver,
+  weightedRandomByReputation,
+} from "@concord/selection";

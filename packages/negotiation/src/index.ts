@@ -1,6 +1,6 @@
 import type {
   Actor,
-  ActionIntent,
+  LegacyActionIntent,
   ContextReceipt,
   DecisionRecord,
   EventStore,
@@ -13,8 +13,10 @@ import type { ProjectId } from "@concord/foundation";
 import { ConsistencyScorer } from "@concord/reputation";
 import type { ReputationEvidenceService } from "@concord/reputation";
 
+export type { Comment, DiscussionOutcome, DiscussionRound, DiscussionThread } from "@concord/core";
+
 export interface CreateNegotiationInput {
-  action: ActionIntent;
+  action: LegacyActionIntent;
   protocolId: "delegate-fast-vote" | "simple-structured-negotiation" | string;
   participants: Actor[];
   context: ContextReceipt;
@@ -382,4 +384,3 @@ function summarizeDecision(
 ): string {
   return `Decision ${result}: ${approvals} approvals, ${rejections} rejections, ${abstentions} abstentions.`;
 }
-

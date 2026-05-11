@@ -171,7 +171,8 @@ export interface RewardOffer {
   reason?: string;
 }
 
-export interface ActionIntent {
+/** @deprecated Use the v0.2 discriminated `ActionIntent` union exported from `./v02.js`. */
+export interface LegacyActionIntent {
   id: ActionId;
   type: string;
   proposedBy: ActorId;
@@ -494,7 +495,7 @@ export interface KnowledgeStore {
 
 export interface ActionPolicyRegistry {
   getPolicy(actionType: string): Promise<ActionPolicy | null>;
-  evaluate(input: { action: ActionIntent; actor: Actor; context: ContextBundle }): Promise<PolicyDecision>;
+  evaluate(input: { action: LegacyActionIntent; actor: Actor; context: ContextBundle }): Promise<PolicyDecision>;
   registerPolicy(input: { policy: ActionPolicy; decisionRecord: DecisionRecord }): Promise<void>;
 }
 
@@ -633,7 +634,7 @@ export const ActorSchema = z.object({
   metadata: z.record(z.unknown()).optional(),
 });
 
-export const ActionIntentSchema = z.object({
+export const LegacyActionIntentSchema = z.object({
   id: z.string(),
   type: z.string().min(1),
   proposedBy: z.string(),
@@ -643,3 +644,5 @@ export const ActionIntentSchema = z.object({
   riskLevel: z.enum(["low", "medium", "high", "critical"]),
   inputs: z.array(z.object({ uri: z.string() })),
 });
+
+export * from "./v02.js";

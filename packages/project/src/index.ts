@@ -17,13 +17,15 @@ import type {
   CapabilityId,
   MembershipId,
   ObjectiveId,
+  OrganizationId,
   PrincipalId,
+  ProductId,
   ProjectBootstrapId,
   ProjectId,
   RuntimeBindingId,
   AddressBindingId,
 } from "@concord/foundation";
-import type { ActionIntent, ActionPolicyRegistry, Actor, ConcordRole, ContextBundle, DecisionFlow, EventStore, PolicyDecision, StateView } from "@concord/core";
+import type { LegacyActionIntent, ActionPolicyRegistry, Actor, ConcordRole, ContextBundle, DecisionFlow, EventStore, PolicyDecision, StateView } from "@concord/core";
 
 type DatabaseSync = {
   exec(sql: string): void;
@@ -50,6 +52,8 @@ export type {
 };
 
 export type ProjectStatus = "draft" | "active" | "paused" | "archived";
+export type OrganizationStatus = "draft" | "active" | "paused" | "archived";
+export type ProductStatus = "draft" | "active" | "retired" | "archived";
 export type ObjectiveKind = "long_term" | "milestone" | "phase" | "task_cluster" | "experiment";
 export type ObjectiveStatus = "draft" | "active" | "succeeded" | "failed" | "superseded" | "abandoned";
 export type RiskLevel = "low" | "medium" | "high" | "critical";
@@ -65,6 +69,68 @@ export interface ProjectProtocolConfig {
   traceRequired: boolean;
 }
 
+export interface Organization {
+  id: OrganizationId;
+  slug: string;
+  name: string;
+  mission?: string;
+  vision?: string;
+  values?: string[];
+  status: OrganizationStatus;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  archivedAt?: Timestamp;
+}
+
+export interface Product {
+  id: ProductId;
+  organizationId: OrganizationId;
+  projectId?: ProjectId;
+  slug: string;
+  name: string;
+  description?: string;
+  status: ProductStatus;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface OrganizationHandbook {
+  id: string;
+  organizationId: OrganizationId;
+  version: Version;
+  mission?: string;
+  vision?: string;
+  values?: string[];
+  principles: string[];
+  roleSystem?: string;
+  stakePrinciples?: string;
+  reputationPrinciples?: string;
+  rewardPrinciples?: string;
+  humanInterventionPrinciples?: string;
+  safetyBoundaries?: string[];
+  artifact?: ArtifactRef;
+  publishedBy: PrincipalId | AgentId;
+  publishedAt: Timestamp;
+}
+
+export interface ProjectHandbook {
+  id: string;
+  organizationId: OrganizationId;
+  projectId: ProjectId;
+  version: Version;
+  objective: string;
+  phases?: string[];
+  roles?: string[];
+  scoringRules?: string[];
+  taskMechanisms?: string[];
+  acceptanceStandards?: string[];
+  knowledgeBaseStructure?: string[];
+  humanRequestRules?: string[];
+  artifact?: ArtifactRef;
+  publishedBy: PrincipalId | AgentId;
+  publishedAt: Timestamp;
+}
+
 export interface ProjectGovernanceConfig {
   reference?: ArtifactRef;
   mode?: "manual" | "external";
@@ -77,6 +143,7 @@ export interface ProjectIncentiveConfig {
 
 export interface Project {
   id: ProjectId;
+  organizationId: OrganizationId;
   slug: string;
   name: string;
   description?: string;
@@ -516,6 +583,7 @@ export interface CreateBoundaryInput {
 }
 
 export interface CreateProjectInput {
+  organizationId?: OrganizationId;
   slug: string;
   name: string;
   description?: string;
@@ -922,6 +990,7 @@ export class ProjectService {
     const boundary = createBoundaryRecord({ ...input.boundary, projectId, createdBy: input.boundary.createdBy ?? input.sponsorPrincipalId }, "active");
     const project: Project = {
       id: projectId,
+      organizationId: input.organizationId ?? makeId("OrganizationId", "organization_default"),
       slug: input.slug,
       name: input.name,
       status: "draft",
@@ -1213,7 +1282,7 @@ export class BoundaryAwareActionPolicyRegistry implements ActionPolicyRegistry {
     return this.base.registerPolicy(input);
   }
 
-  async evaluate(input: { action: ActionIntent; actor: Actor; context: ContextBundle }): Promise<PolicyDecision> {
+  async evaluate(input: { action: LegacyActionIntent; actor: Actor; context: ContextBundle }): Promise<PolicyDecision> {
     if (!input.context.projectId && !input.action.projectId) {
       return this.base.evaluate(input);
     }
@@ -1254,7 +1323,7 @@ export class BoundaryAwareActionPolicyRegistry implements ActionPolicyRegistry {
   }
 
   private async recordBoundaryDecision(
-    input: { action: ActionIntent; actor: Actor },
+    input: { action: LegacyActionIntent; actor: Actor },
     result: PolicyDecision["result"],
     reason: string,
   ): Promise<PolicyDecision> {

@@ -1,16 +1,47 @@
 import type {
   ActorId,
   ArtifactRef,
+  ObjectRef,
   FundingReceiptId,
   ObjectiveId,
+  OrganizationId,
   ProjectId,
   RewardIntentId,
+  SettlementBatchId,
   SettlementIntentId,
   SettlementReceiptId,
   SlashIntentId,
   Timestamp,
 } from "@concord/foundation";
 import type { AssetAmount } from "@concord/core";
+
+export type RewardIntentStatus = "created" | "paused" | "pending_settlement" | "submitted" | "settled" | "failed" | "cancelled";
+
+export interface RewardIntent {
+  id: RewardIntentId;
+  organizationId: OrganizationId;
+  projectId?: ProjectId;
+  targetRef: ObjectRef;
+  beneficiary: ActorId;
+  amount: AssetAmount;
+  status: RewardIntentStatus;
+  reason: string;
+  evidence: ArtifactRef[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface SettlementBatch {
+  id: SettlementBatchId;
+  organizationId: OrganizationId;
+  projectId?: ProjectId;
+  rewardIntentIds: RewardIntentId[];
+  status: "created" | "submitted" | "confirmed" | "failed" | "cancelled";
+  settlementReceiptIds: SettlementReceiptId[];
+  reason?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
 
 // ─── Settlement Intent ────────────────────────────────────────────────────────
 

@@ -23,11 +23,19 @@ export type SubmissionId = Id<"SubmissionId">;
 export type ReviewRecordId = Id<"ReviewRecordId">;
 export type IncentiveIntentId = Id<"IncentiveIntentId">;
 export type GovernanceIntentId = Id<"GovernanceIntentId">;
+export type ActionIntentId = Id<"ActionIntentId">;
+export type OrganizationId = Id<"OrganizationId">;
 export type ProjectId = Id<"ProjectId">;
+export type ProductId = Id<"ProductId">;
 export type ObjectiveId = Id<"ObjectiveId">;
 export type BoundaryId = Id<"BoundaryId">;
 export type PrincipalId = Id<"PrincipalId">;
 export type AgentId = Id<"AgentId">;
+export type HumanPrincipalId = Id<"HumanPrincipalId">;
+export type AuthorityRoleId = Id<"AuthorityRoleId">;
+export type MechanismId = Id<"MechanismId">;
+export type MechanismVersionId = Id<"MechanismVersionId">;
+export type MechanismInstanceId = Id<"MechanismInstanceId">;
 export type RuntimeBindingId = Id<"RuntimeBindingId">;
 export type MembershipId = Id<"MembershipId">;
 export type ProjectBootstrapId = Id<"ProjectBootstrapId">;
@@ -41,7 +49,18 @@ export type InputRiskAssessmentId = Id<"InputRiskAssessmentId">;
 export type InputRoutingDecisionId = Id<"InputRoutingDecisionId">;
 export type InputDeduplicationResultId = Id<"InputDeduplicationResultId">;
 export type ObservationQueueItemId = Id<"ObservationQueueItemId">;
+export type ObservationTaskId = Id<"ObservationTaskId">;
 export type ObservationId = Id<"ObservationId">;
+export type AssignmentOfferId = Id<"AssignmentOfferId">;
+export type DiscussionThreadId = Id<"DiscussionThreadId">;
+export type DiscussionRoundId = Id<"DiscussionRoundId">;
+export type DiscussionOutcomeId = Id<"DiscussionOutcomeId">;
+export type ProposalId = Id<"ProposalId">;
+export type VotingRoundId = Id<"VotingRoundId">;
+export type TaskId = Id<"TaskId">;
+export type ArtifactId = Id<"ArtifactId">;
+export type ReviewRoundId = Id<"ReviewRoundId">;
+export type ReviewId = Id<"ReviewId">;
 
 // M11 – Selection / Lease / Failover / Reputation
 export type SelectionPolicyId = Id<"SelectionPolicyId">;
@@ -54,13 +73,45 @@ export type ReputationEvidenceId = Id<"ReputationEvidenceId">;
 export type RewardIntentId = Id<"RewardIntentId">;
 export type RewardPolicyId = Id<"RewardPolicyId">;
 export type SettlementIntentId = Id<"SettlementIntentId">;
+export type SettlementBatchId = Id<"SettlementBatchId">;
 export type FundingReceiptId = Id<"FundingReceiptId">;
 export type SettlementReceiptId = Id<"SettlementReceiptId">;
 export type SlashIntentId = Id<"SlashIntentId">;
+export type StakePositionId = Id<"StakePositionId">;
 export type LedgerAccountId = Id<"LedgerAccountId">;
 export type LedgerEntryId = Id<"LedgerEntryId">;
 export type StakeReceiptId = Id<"StakeReceiptId">;
 export type ReviewAggregationId = Id<"ReviewAggregationId">;
+
+export type ObjectRefKind =
+  | "organization"
+  | "project"
+  | "product"
+  | "handbook"
+  | "mechanism"
+  | "observation_task"
+  | "observation"
+  | "assignment_offer"
+  | "discussion_thread"
+  | "discussion_round"
+  | "discussion_outcome"
+  | "proposal"
+  | "voting_round"
+  | "task"
+  | "submission"
+  | "artifact"
+  | "review_round"
+  | "review"
+  | "reward_intent"
+  | "settlement_batch"
+  | "stake_position"
+  | "authority_action";
+
+export interface ObjectRef<TKind extends ObjectRefKind = ObjectRefKind> {
+  kind: TKind;
+  id: string;
+  version?: Version;
+}
 
 export interface Version {
   value: string;

@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import { makeId, nowTimestamp, version } from "@concord/foundation";
 import type { ActorId, LeaseId, ObjectiveId, ProjectId, RoleAssignmentId, SelectionPolicyId } from "@concord/foundation";
 import type { ConcordRole } from "@concord/core";
@@ -20,10 +21,10 @@ import type {
 
 export class DefaultRandomSource implements RandomSource {
   nextFloat(): number {
-    return Math.random();
+    return randomInt(0, 0x100000000) / 0x100000000;
   }
   nextInt(maxExclusive: number): number {
-    return Math.floor(Math.random() * maxExclusive);
+    return randomInt(0, maxExclusive);
   }
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ActorSchema, ActionIntentSchema } from "./index.js";
+import { ActorSchema, ActionIntentSchema, LegacyActionIntentSchema } from "./index.js";
 import type { NormalizedChainEvent, ChainRef } from "./index.js";
 
 describe("core schemas", () => {
@@ -15,7 +15,7 @@ describe("core schemas", () => {
 
   it("rejects action intents without an action type", () => {
     expect(() =>
-      ActionIntentSchema.parse({
+      LegacyActionIntentSchema.parse({
         id: "action_1",
         type: "",
         proposedBy: "actor_1",
@@ -26,6 +26,19 @@ describe("core schemas", () => {
         inputs: [],
       }),
     ).toThrow();
+  });
+
+  it("validates a v0.2 action intent", () => {
+    expect(() =>
+      ActionIntentSchema.parse({
+        id: "intent_1",
+        type: "CreateObservationTask",
+        actorId: "actor_1",
+        organizationId: "org_1",
+        payload: { title: "Observe project risk" },
+        createdAt: { iso: "2026-01-01T00:00:00.000Z" },
+      }),
+    ).not.toThrow();
   });
 });
 

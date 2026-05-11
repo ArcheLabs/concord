@@ -1,6 +1,8 @@
 import type {
   ActorId,
   ArtifactRef,
+  ObjectRef,
+  OrganizationId,
   ProjectId,
   ObjectiveId,
   ReputationEvidenceId,
@@ -9,6 +11,43 @@ import type {
   Timestamp,
   WorkOrderId,
 } from "@concord/foundation";
+
+export type ReputationEventKind =
+  | "onAccepted"
+  | "onRejected"
+  | "onFailed"
+  | "onReviewAccurate"
+  | "onObligationMissed"
+  | ReputationEvidenceKind;
+
+export interface ReputationEvent {
+  id: string;
+  organizationId: OrganizationId;
+  projectId?: ProjectId;
+  actorId: ActorId;
+  kind: ReputationEventKind;
+  targetRef?: ObjectRef;
+  scoreDelta?: number;
+  weight?: number;
+  rationale?: string;
+  evidence: ArtifactRef[];
+  createdAt: Timestamp;
+}
+
+export interface ReputationProfile {
+  actorId: ActorId;
+  organizationId: OrganizationId;
+  projectId?: ProjectId;
+  globalScore?: number;
+  organizationScore?: number;
+  projectScore?: number;
+  skillScores?: Record<string, number>;
+  roleScores?: Record<string, number>;
+  reviewReliability?: number;
+  penaltyCount: number;
+  disputeCount: number;
+  updatedAt: Timestamp;
+}
 
 // ─── Evidence Kind ────────────────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeId, nowTimestamp, version } from "@concord/foundation";
-import type { ActionIntent, ActionPolicy, Actor, ContextBundle, ContextReceipt, DecisionRecord } from "@concord/core";
+import type { LegacyActionIntent, ActionPolicy, Actor, ContextBundle, ContextReceipt, DecisionRecord } from "@concord/core";
 import { MemoryEventStore } from "@concord/state";
 import { InMemoryActionPolicyRegistry } from "./index.js";
 
@@ -61,7 +61,7 @@ function bundle(): ContextBundle {
   };
 }
 
-function action(type: string): ActionIntent {
+function action(type: string): LegacyActionIntent {
   return {
     id: makeId("ActionId", `action_${type}`),
     type,

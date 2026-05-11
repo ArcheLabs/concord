@@ -1,7 +1,14 @@
 import { readFile } from "node:fs/promises";
 import { DefaultInvariantRunner } from "@concord/invariants";
 import { DefaultScenarioRunner } from "@concord/scenario";
-import { createSQLiteConcord } from "@concord/sdk";
+import {
+  ActionIntentSchema,
+  CoordinationMechanismSchema,
+  DeterministicRandomSource,
+  DomainEventSchema,
+  createSQLiteConcord,
+  randomFromQualified,
+} from "@concord/sdk";
 import { DefaultTraceReplayer, DefaultTraceVerifier, loadTrace } from "@concord/trace";
 import { parse as parseYaml } from "yaml";
 
@@ -28,12 +35,84 @@ try {
     await handlePrincipal(subcommand, args.slice(2));
   } else if (command === "agent") {
     await handleAgent(subcommand, args.slice(2));
+  } else if (command === "v02" && subcommand === "demo") {
+    await runV02Demo();
   } else {
     usage(2);
   }
 } catch (error) {
   console.error((error as Error).message);
   process.exit(2);
+}
+
+// ---------------------------------------------------------------------------
+// v0.2 domain-contract demo
+// ---------------------------------------------------------------------------
+
+async function runV02Demo(): Promise<void> {
+  const createdAt = { iso: "2026-01-01T00:00:00.000Z" };
+  const mechanism = CoordinationMechanismSchema.parse({
+    id: "mechanism_observation_to_task",
+    organizationId: "org_demo",
+    projectId: "project_demo",
+    name: "Observation to task",
+    version: { value: "0.2.0" },
+    status: "enabled",
+    rules: {
+      assignment: [{ type: "random_from_qualified", count: 1 }],
+      participation: [{ type: "min_participants", count: 2 }],
+      voting: [{ type: "majority_threshold", percent: 0.5 }],
+      timeout: [{ type: "assignment_response_deadline", seconds: 3600 }],
+      reward: [{ type: "fixed_reward", asset: "VIB", amount: "10" }],
+      reputation: [{ type: "onAccepted", delta: 1 }],
+    },
+    createdAt,
+    updatedAt: createdAt,
+  });
+  const observer = randomFromQualified(
+    [
+      { actorId: "agent_observer_a" as never, reputationScore: 1 },
+      { actorId: "agent_observer_b" as never, reputationScore: 2 },
+    ],
+    1,
+    new DeterministicRandomSource("v02-demo"),
+  )[0];
+  const intent = ActionIntentSchema.parse({
+    id: "intent_create_observation_task",
+    type: "CreateObservationTask",
+    actorId: "agent_guardian",
+    organizationId: "org_demo",
+    projectId: "project_demo",
+    payload: { title: "Observe project risk", mechanismId: mechanism.id },
+    createdAt,
+  });
+  const events = [
+    event("ObservationTaskCreated", "observation_task", "observation_task_demo", intent.id, { mechanismId: mechanism.id }),
+    event("AssignmentOffered", "assignment_offer", "assignment_offer_demo", "event_ObservationTaskCreated", { offeredTo: observer }),
+    event("ObservationCreated", "observation", "observation_demo", "event_AssignmentOffered", { summary: "No blocker found" }),
+    event("DiscussionRoundCreated", "discussion_round", "discussion_round_demo", "event_ObservationCreated", { participants: [observer] }),
+    event("DiscussionOutcomeRecorded", "discussion_outcome", "discussion_outcome_demo", "event_DiscussionRoundCreated", { outcome: "proposal_created" }),
+    event("ProposalSubmitted", "proposal", "proposal_demo", "event_DiscussionOutcomeRecorded", { title: "Create follow-up task" }),
+    event("TaskCreated", "task", "task_demo", "event_ProposalSubmitted", { title: "Implement follow-up" }),
+  ];
+
+  console.log(JSON.stringify({ mechanism: mechanism.id, selectedObserver: observer, intent: intent.type, causalChain: events.map((item) => item.type) }, null, 2));
+}
+
+function event(type: string, kind: string, id: string, causationId: string, payload: Record<string, unknown>) {
+  return DomainEventSchema.parse({
+    id: `event_${type}`,
+    type,
+    aggregateRef: { kind, id },
+    objectRefs: [{ kind, id }],
+    actorId: "agent_guardian",
+    organizationId: "org_demo",
+    projectId: "project_demo",
+    causationId,
+    payload,
+    createdAt: { iso: "2026-01-01T00:00:00.000Z" },
+    schemaVersion: { value: "0.2.0" },
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -490,6 +569,7 @@ function usage(code: number): never {
   console.error("  concord trace verify <trace.json> [--strict] [--json] [--skip id]");
   console.error("  concord trace replay <trace.json> [--store memory|sqlite] [--sqlite-path path] [--stop-after n]");
   console.error("  concord trace run <scenario.yaml>");
+  console.error("  concord v02 demo");
   console.error("");
   console.error("  concord project create --file project.yaml [--db path]");
   console.error("  concord project list [--db path]");

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeId, nowTimestamp, version } from "@concord/foundation";
-import type { ActionIntent, Actor, ContextReceipt } from "@concord/core";
+import type { LegacyActionIntent, Actor, ContextReceipt } from "@concord/core";
 import { InMemoryNegotiationService } from "./index.js";
 import { InMemoryReputationEvidenceService } from "@concord/reputation";
 
@@ -24,7 +24,7 @@ function receipt(actorId = makeId("ActorId", "observer_1")): ContextReceipt {
   };
 }
 
-function action(proposedBy = makeId("ActorId", "observer_1")): ActionIntent {
+function action(proposedBy = makeId("ActorId", "observer_1")): LegacyActionIntent {
   return {
     id: makeId("ActionId", "action_neg"),
     type: "create_plan",
@@ -278,4 +278,3 @@ describe("reputation evidence write-back", () => {
     expect(outlierEvidence.some((e) => e.kind === "review_consensus_deviation")).toBe(true);
   });
 });
-

@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import type { ActionIntent, ActionPolicy, Actor, ContextBundle, ContextReceipt, DecisionRecord, KnowledgeCandidate, NegotiationInstance, WorkOrder } from "@concord/core";
+import type { LegacyActionIntent, ActionPolicy, Actor, ContextBundle, ContextReceipt, DecisionRecord, KnowledgeCandidate, NegotiationInstance, WorkOrder } from "@concord/core";
 import { MemoryEventStore, MemoryKnowledgeStore, MemoryProjectionStore, createStateView } from "@concord/adapters";
 import { createConcord } from "@concord/sdk";
 import { createEvent, hashCanonical, makeId, nowTimestamp, sha256, version, withDeterministicMode, type ActorId } from "@concord/foundation";
@@ -18,7 +18,7 @@ interface ScenarioState {
   goalId?: string;
   contextBundle?: ContextBundle;
   contextReceipt?: ContextReceipt;
-  action?: ActionIntent;
+  action?: LegacyActionIntent;
   decision?: DecisionRecord;
   negotiation?: NegotiationInstance;
   workOrder?: WorkOrder;

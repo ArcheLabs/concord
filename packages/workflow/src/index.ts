@@ -9,17 +9,19 @@ import type {
   ReviewRecord,
   ReviewTarget,
   RuntimeExecutionResult,
-  Submission,
+  Submission as LegacySubmission,
   WorkClaim,
   WorkOrder,
 } from "@concord/core";
 import { createEvent, type ActorId, type WorkOrderId, makeId, nowTimestamp } from "@concord/foundation";
 import type { ProjectStore, RuntimeBinding } from "@concord/project";
 
+export type * from "./v02.js";
+
 export class InMemoryWorkService {
   private readonly workOrders = new Map<WorkOrderId, WorkOrder>();
   private readonly claims = new Map<string, WorkClaim>();
-  private readonly submissions = new Map<string, Submission>();
+  private readonly submissions = new Map<string, LegacySubmission>();
 
   constructor(
     private readonly eventStore?: EventStore,
@@ -76,14 +78,14 @@ export class InMemoryWorkService {
     submittedBy: ActorId;
     contextReceipt: ContextReceipt;
     executionReceipt: ExecutionReceipt;
-    artifacts: Submission["artifacts"];
+    artifacts: LegacySubmission["artifacts"];
     summary: string;
-  }): Promise<Submission> {
+  }): Promise<LegacySubmission> {
     const workOrder = this.getWorkOrderOrThrow(input.workOrderId);
     if (workOrder.status !== "claimed" && workOrder.status !== "open") {
       throw new Error(`Work order cannot be submitted from status ${workOrder.status}`);
     }
-    const submission: Submission = {
+    const submission: LegacySubmission = {
       id: makeId("SubmissionId"),
       workOrderId: input.workOrderId,
       submittedBy: input.submittedBy,
@@ -125,7 +127,7 @@ export class InMemoryWorkService {
     );
   }
 
-  async getSubmission(id: Submission["id"]): Promise<Submission | null> {
+  async getSubmission(id: LegacySubmission["id"]): Promise<LegacySubmission | null> {
     return this.submissions.get(id) ?? null;
   }
 

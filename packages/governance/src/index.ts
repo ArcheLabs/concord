@@ -1,3 +1,8 @@
+/**
+ * @legacy v0.2 keeps this package only as an external governance adapter surface.
+ * Core Vibly coordination concepts live in organization, discussion, workflow,
+ * mechanism, reputation, and settlement contracts instead of this package.
+ */
 export type {
   GovernanceBackendKind,
   GovernanceBackendCapabilities,
