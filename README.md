@@ -1,113 +1,112 @@
 # concord
 
-Concord 协议内核 — TypeScript-first pnpm monorepo，实现协调协议的链下逻辑，并通过 **adapter 边界** 连接真实的链上系统（OpenGov、EVM、Substrate）。
+Concord is the protocol kernel for the Vibly coordination network — a TypeScript-first pnpm monorepo that implements all off-chain coordination logic and connects to on-chain systems (Substrate, EVM) through clean **adapter boundaries**.
 
-## 快速开始
+> **No HTTP server shipped here.** The REST/SSE network gateway is owned by [`vibly-coordinator`](../vibly-coordinator). The dependency direction is always `vibly-* → concord`.
+
+## Quick start
 
 ```bash
 pnpm install
 pnpm build
 pnpm test
-pnpm demo    # 运行 MVP 演示循环（SDK CLI，无 HTTP 服务）
+pnpm demo    # run the MVP demo loop (SDK CLI, no HTTP server)
 ```
 
-> 本仓库**不提供任何对外 HTTP 服务**。网络协调节点的 REST/SSE 网关由 [`vibly-coordinator`](../vibly-coordinator) 提供，REST/SSE 契约也以该仓库的 Fastify 路由为唯一事实来源。SDK 可被驱动的演示见 `pnpm demo` 与 `pnpm concord ...` CLI。
-
-## 架构概览
+## Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │                         @concord/sdk                         │
 │            createConcord() / createSQLiteConcord()           │
 └───────────────────────┬──────────────────────────────────────┘
-                        │ 依赖
+                        │
         ┌───────────────┼───────────────┐
         ▼               ▼               ▼
    @concord/core   @concord/state  @concord/governance
-   @concord/foundation  @concord/negotiation  ...
+   @concord/foundation  @concord/negotiation  …
         │               │               │
         ▼               ▼               ▼
   adapter-substrate-actions  adapter-substrate-indexer
-  (链上治理操作, PAPI)        (SubQuery 链下索引查询)
+  (on-chain governance txns)  (SubQuery GraphQL queries)
 ```
 
-## 包清单
+## Packages
 
-### 核心协议包
+### Protocol core
 
-| 包 | 职责 |
+| Package | Responsibility |
 |---|---|
-| `@concord/foundation` | 品牌化 ID、时间戳、canonical JSON、SHA-256、审计事件信封 |
-| `@concord/core` | Concord 领域类型、schema、服务 port、运行时/网关接口 |
-| `@concord/state` | 内存和 SQLite 事件/投影 store |
-| `@concord/knowledge` | 知识候选、commit、版本管理 |
-| `@concord/policy` | 行动策略注册表与策略路由 |
-| `@concord/negotiation` | 委托快速投票、结构化协商 |
-| `@concord/workflow` | 工作单、运行时分发、提交、评审、聚合 |
-| `@concord/adapters` | mock 运行时、脚本运行时、mock 治理/资金网关 |
-| `@concord/sdk` | `createConcord()` 和 `createSQLiteConcord()` 门面 |
+| `@concord/foundation` | Branded IDs, timestamps, canonical JSON, SHA-256, audit event envelope |
+| `@concord/core` | Domain types, schemas, service ports, runtime/gateway interfaces |
+| `@concord/state` | In-memory and SQLite event / projection store |
+| `@concord/knowledge` | Knowledge candidates, commits, version management |
+| `@concord/policy` | Action policy registry and routing |
+| `@concord/negotiation` | Delegated fast-vote and structured negotiation |
+| `@concord/workflow` | Work items, runtime dispatch, submission, review, aggregation |
+| `@concord/adapters` | Mock runtime, script runtime, mock governance/funding gateways |
+| `@concord/sdk` | `createConcord()` and `createSQLiteConcord()` facades |
 
-### 扩展与状态包
+### Extension packages
 
-| 包 | 职责 |
+| Package | Responsibility |
 |---|---|
-| `@concord/governance` | 治理 port 接口（GovernanceActionsPort, GovernanceIndexFeedPort, GovernanceIndexQueryPort） |
-| `@concord/chain-indexing` | 通用链索引类型（ChainCheckpoint, NormalizedChainEvent, IndexCursor） |
-| `@concord/external-input` | 外部输入服务 |
-| `@concord/selection` | 选择服务、租约管理、故障转移 |
-| `@concord/reputation` | 声誉证据服务 |
-| `@concord/incentive` | 激励服务、资金/质押/价格网关 |
-| `@concord/settlement` | 结算服务 |
-| `@concord/trace` | 协议追踪、验证、重放 |
-| `@concord/scenario` | 场景运行器 |
-| `@concord/invariants` | 不变量检查 |
-| `@concord/agent-directory` | Agent 目录 |
-| `@concord/trust-registry` | 信任注册表 |
-| `@concord/coordination-view` | 协调视图 |
-| `@concord/project` | 项目、目标、边界、委托人、成员 |
+| `@concord/governance` | Governance port interfaces (ActionsPort, IndexFeedPort, IndexQueryPort) |
+| `@concord/chain-indexing` | Generic chain-indexing types (ChainCheckpoint, NormalizedChainEvent, IndexCursor) |
+| `@concord/external-input` | External input service |
+| `@concord/selection` | Selection service, lease management, failover |
+| `@concord/reputation` | Reputation evidence service |
+| `@concord/incentive` | Incentive service, funding / staking / pricing gateways |
+| `@concord/settlement` | Settlement service |
+| `@concord/trace` | Protocol tracing, verification, replay |
+| `@concord/scenario` | Scenario runner |
+| `@concord/invariants` | Invariant checking |
+| `@concord/agent-directory` | Agent directory |
+| `@concord/trust-registry` | Trust registry |
+| `@concord/coordination-view` | Coordination view |
+| `@concord/project` | Projects, objectives, boundaries, principals, members |
 
-### Chain-First Adapter 包
+### Chain adapters
 
-| 包 | 职责 |
+| Package | Responsibility |
 |---|---|
-| `@concord/adapter-substrate-actions` | `SubstrateGovernanceActionsAdapter` — 通过 polkadot-api (PAPI) 向 vibly-chain solo-node 提交治理交易 |
-| `@concord/adapter-substrate-indexer` | `SubQueryGovernanceIndexAdapter` — 查询 vibly-indexer SubQuery GraphQL endpoint，实现 GovernanceIndexFeedPort + GovernanceIndexQueryPort |
+| `@concord/adapter-substrate-actions` | `SubstrateGovernanceActionsAdapter` — submits governance transactions to vibly-chain via polkadot-api (PAPI) |
+| `@concord/adapter-substrate-indexer` | `SubQueryGovernanceIndexAdapter` — queries vibly-indexer SubQuery GraphQL, implements GovernanceIndexFeedPort + GovernanceIndexQueryPort |
+| `@concord/adapters-mock-ledger` | Mock stake-ledger adapter for testing without a live chain |
 
-## SDK 扩展点（ConcordConfig）
+## SDK extension points
 
 ```ts
 import { createConcord } from "@concord/sdk";
 
 const concord = createConcord({
-  // ... 原有配置 ...
-
-  // Chain-First 可选适配器
-  governanceIndexQuery: subQueryAdapter.query,   // GovernanceIndexQueryPort
-  serviceChainActions: myServiceChainAdapter,     // ServiceChainActionsPort
+  // optional chain adapters
+  governanceIndexQuery: subQueryAdapter.query,    // GovernanceIndexQueryPort
+  serviceChainActions: mySubstrateActionsAdapter, // ServiceChainActionsPort
 });
 ```
 
-## MVP 演示循环
+## MVP demo loop
 
-`pnpm demo` 运行：
+`pnpm demo` drives the full protocol loop:
 
 ```
 goal → observer → context → action → policy → negotiation → work → runtime → review → knowledge commit → state update
 ```
 
-使用 SQLite 持久化：
+With SQLite persistence:
 
 ```bash
 pnpm --filter @concord/mvp-runner dev -- --db ./data/concord.db
 ```
 
-使用本地脚本运行时：
+With a local script runtime:
 
 ```bash
 pnpm --filter @concord/mvp-runner dev -- --runtime-script ./examples/runtime.js
 ```
 
-脚本通过 stdin 接收 JSON，返回：
+The script receives a JSON task on stdin and must return:
 
 ```json
 {
@@ -119,33 +118,30 @@ pnpm --filter @concord/mvp-runner dev -- --runtime-script ./examples/runtime.js
 }
 ```
 
-## M8 追踪与场景工具
+## Tracing and scenario tools
 
 ```bash
-pnpm concord scenario run examples/scenarios/simple-loop.yaml --trace-out traces/simple-loop.trace.json --verify --replay
+pnpm concord scenario run examples/scenarios/simple-loop.yaml \
+  --trace-out traces/simple-loop.trace.json --verify --replay
 pnpm concord trace verify traces/simple-loop.trace.json
 pnpm concord trace replay traces/simple-loop.trace.json
 ```
 
-- [Protocol Trace](docs/m8-protocol-trace.md)
-- [Invariants](docs/m8-invariants.md)
-- [Scenario Runner](docs/m8-scenario-runner.md)
+## Design boundaries
 
-## 设计边界
+The event log is the audit source of truth; state views and action tables are projections; knowledge may only be formalised via `KnowledgeCandidate → KnowledgeCommit → KnowledgeVersion`.
 
-事件日志是审计源，状态视图和操作表是投影，知识只能通过 `KnowledgeCandidate → KnowledgeCommit → KnowledgeVersion` 形式化。
+The following concerns are expressed through port interfaces and mock adapters, and are **not** implemented in this monorepo:
 
-以下系统通过 port 接口和 mock adapter 表示，不在本 monorepo 中实现：
+- EVM contracts, P2P networking, sybil defence, slash adjudication
+- REST/SSE gateway for network coordination (see `vibly-coordinator`)
+- Web Console (see `vibly-console`)
+- On-chain agent runtimes
+- Real OpenGov transactions (provided by `adapter-substrate-actions` after `papi add vibly-solo` codegen)
 
-- EVM 合约、P2P 网络、sybil 防御、slash 裁决
-- 网络协调节点的 REST/SSE 网关（见 `vibly-coordinator`，对外 HTTP 契约的唯一事实来源）
-- Web Console（见 `vibly-console`）
-- 链上 agent 运行时
-- 真实 OpenGov 交易（由 `adapter-substrate-actions` 提供，需运行 `papi add vibly-solo` codegen）
+### Layering invariants
 
-### 分层与依赖方向（不变量）
-
-- `@concord/*`（`packages/`）不得依赖 fastify、express、`@fastify/*` 等 HTTP 框架；任何 HTTP 化能力都在产品仓库内组装。
-- `concord/apps/*` 不得新增对外暴露 HTTP 的服务进程；只允许 CLI / 脚本演示（如 `apps/mvp-runner`）。
-- `concord/*` 不得依赖任何 `vibly-*` 包；依赖方向永远是 `vibly-* → concord`。
-- 命名禁忌：concord 内部不得使用 `coordinator-api`、`vibly-*`、`coordinator-*` 等产品命名空间。
+- `@concord/*` packages must not depend on Fastify, Express, or any HTTP framework.
+- `concord/apps/*` must not expose HTTP server processes; only CLI / script demos are permitted.
+- `concord/*` must not depend on any `vibly-*` package; the dependency arrow is always `vibly-* → concord`.
+- Product-namespace identifiers (`coordinator-api`, `vibly-*`, `coordinator-*`) are forbidden inside this repository.
