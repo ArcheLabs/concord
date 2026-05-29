@@ -5,3 +5,7 @@ packages:
   - "../vibly-client"
   - "../vibly-console"
   - "../vibly-coordinator-http-contract"
+allowBuilds:
+  better-sqlite3: true
+  esbuild: true
+  protobufjs: true
