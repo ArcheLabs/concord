@@ -3,7 +3,7 @@ import { MockLedger } from "./mock-ledger.js";
 import { MockFundingGateway } from "./mock-funding-gateway.js";
 import { MockStakeGateway } from "./mock-stake-gateway.js";
 import { MockPriceGateway } from "./mock-price-gateway.js";
-import { makeId } from "@concord/foundation";
+import { makeId } from "@vibly-ai/concord-foundation";
 
 const PROJECT_ID = makeId("ProjectId", "proj_mock");
 const ACTOR_A = makeId("ActorId", "actor_a");

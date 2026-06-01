@@ -4,7 +4,7 @@ import type {
   LedgerEntryId,
   ProjectId,
   Timestamp,
-} from "@concord/foundation";
+} from "@vibly-ai/concord-foundation";
 
 export type LedgerEntryKind =
   | "credit"

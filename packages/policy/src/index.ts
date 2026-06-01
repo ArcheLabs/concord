@@ -1,5 +1,5 @@
-import type { LegacyActionIntent, ActionPolicy, ActionPolicyRegistry, Actor, ContextBundle, DecisionRecord, EventStore, PolicyDecision } from "@concord/core";
-import { createEvent, makeId, nowTimestamp } from "@concord/foundation";
+import type { LegacyActionIntent, ActionPolicy, ActionPolicyRegistry, Actor, ContextBundle, DecisionRecord, EventStore, PolicyDecision } from "@vibly-ai/concord-core";
+import { createEvent, makeId, nowTimestamp } from "@vibly-ai/concord-foundation";
 export * from "./mechanism.js";
 
 export class InMemoryActionPolicyRegistry implements ActionPolicyRegistry {

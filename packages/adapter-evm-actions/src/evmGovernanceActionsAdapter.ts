@@ -3,8 +3,8 @@ import type {
   GovernanceSubjectRef,
   GovernanceVoteStance,
   GovernanceProposalSummary,
-} from "@concord/governance";
-import type { ChainRef, TxReceipt } from "@concord/core";
+} from "@vibly-ai/concord-governance";
+import type { ChainRef, TxReceipt } from "@vibly-ai/concord-core";
 import { mapStanceToSupport } from "./evmStatusMapping.js";
 
 // ─── Fixture helpers ──────────────────────────────────────────────────────────

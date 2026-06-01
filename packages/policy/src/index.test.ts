@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { makeId, nowTimestamp, version } from "@concord/foundation";
-import type { LegacyActionIntent, ActionPolicy, Actor, ContextBundle, ContextReceipt, DecisionRecord } from "@concord/core";
+import { makeId, nowTimestamp, version } from "@vibly-ai/concord-foundation";
+import type { LegacyActionIntent, ActionPolicy, Actor, ContextBundle, ContextReceipt, DecisionRecord } from "@vibly-ai/concord-core";
 import { MemoryEventStore } from "@concord/state";
 import { InMemoryActionPolicyRegistry } from "./index.js";
 

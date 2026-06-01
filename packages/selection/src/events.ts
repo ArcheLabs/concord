@@ -1,4 +1,4 @@
-import type { EventEnvelope, FailoverRecordId, LeaseId, RoleAssignmentId, SelectionPolicyId } from "@concord/foundation";
+import type { EventEnvelope, FailoverRecordId, LeaseId, RoleAssignmentId, SelectionPolicyId } from "@vibly-ai/concord-foundation";
 import type { FailoverRecord, Lease, SelectionPolicy, SelectionRoleAssignment } from "./types.js";
 
 export type SelectionPolicyCreatedEvent = EventEnvelope<

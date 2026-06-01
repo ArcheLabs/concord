@@ -3,7 +3,7 @@ import type {
   TxReceipt,
   IndexCursor,
   NormalizedChainEvent,
-} from "@concord/core";
+} from "@vibly-ai/concord-core";
 import type {
   GovernanceBackendKind,
   GovernanceSubjectRef,
@@ -170,7 +170,7 @@ export interface GovernanceIndexFeedPort {
 export interface GovernanceIndexQueryPort {
   getGovernanceCheckpoint(input: {
     chain: ChainRef;
-  }): Promise<import("@concord/chain-indexing").ChainCheckpoint | null>;
+  }): Promise<import("@vibly-ai/concord-chain-indexing").ChainCheckpoint | null>;
 
   getGovernanceState(input: {
     chain: ChainRef;

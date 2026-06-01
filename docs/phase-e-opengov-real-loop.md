@@ -3,7 +3,7 @@
 Phase E validates the primary governance path:
 
 1. Concord/coordinator creates a governance intent.
-2. `vibly-coordinator` submits the intent through `@concord/adapter-substrate-actions`.
+2. `vibly-coordinator` submits the intent through `@vibly-ai/concord-adapter-substrate-actions`.
 3. `vibly-chain` solo-node emits OpenGov events.
 4. `vibly-indexer` reads referenda, votes, and checkpoints.
 5. Coordinator projector exposes typed and merged governance views.

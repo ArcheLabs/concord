@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ChainCheckpoint, ReorgNotice, IndexerRuntime } from "./index.js";
-import type { NormalizedChainEvent } from "@concord/core";
+import type { NormalizedChainEvent } from "@vibly-ai/concord-core";
 
 describe("chain-indexing exports", () => {
   it("can construct a ChainCheckpoint", () => {

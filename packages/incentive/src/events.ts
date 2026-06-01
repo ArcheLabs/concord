@@ -1,4 +1,4 @@
-import type { EventEnvelope, FundingReceiptId, RewardIntentId, RewardPolicyId } from "@concord/foundation";
+import type { EventEnvelope, FundingReceiptId, RewardIntentId, RewardPolicyId } from "@vibly-ai/concord-foundation";
 import type { FundingReceipt, RewardIntent, RewardPolicy } from "./types.js";
 
 export type RewardPolicyCreatedEvent = EventEnvelope<"RewardPolicyCreated", { policy: RewardPolicy }>;

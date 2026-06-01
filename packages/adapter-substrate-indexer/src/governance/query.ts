@@ -2,13 +2,13 @@
  * GovernanceIndexQueryPort adapter backed by SubQuery.
  */
 
-import type { ChainRef } from "@concord/core";
+import type { ChainRef } from "@vibly-ai/concord-core";
 import type {
   GovernanceIndexQueryPort,
   GovernanceSubjectRef,
   GovernanceProposalSummary,
-} from "@concord/governance";
-import type { ChainCheckpoint } from "@concord/chain-indexing";
+} from "@vibly-ai/concord-governance";
+import type { ChainCheckpoint } from "@vibly-ai/concord-chain-indexing";
 import { SubQueryClient } from "../subquery/client.js";
 import { mapSubjectToProposalSummary, mapCheckpoint } from "./mapper.js";
 

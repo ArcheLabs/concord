@@ -1,9 +1,9 @@
 /**
- * Maps SubQuery raw entities → @concord/governance domain types.
+ * Maps SubQuery raw entities → @vibly-ai/concord-governance domain types.
  */
 
-import type { GovernanceProposalSummary } from "@concord/governance";
-import type { ChainCheckpoint } from "@concord/chain-indexing";
+import type { GovernanceProposalSummary } from "@vibly-ai/concord-governance";
+import type { ChainCheckpoint } from "@vibly-ai/concord-chain-indexing";
 import type {
   RawGovernanceSubject,
   RawGovernanceCheckpoint,

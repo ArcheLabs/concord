@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { makeId, nowTimestamp, version } from "@concord/foundation";
-import type { LegacyActionIntent, Actor, ContextReceipt } from "@concord/core";
+import { makeId, nowTimestamp, version } from "@vibly-ai/concord-foundation";
+import type { LegacyActionIntent, Actor, ContextReceipt } from "@vibly-ai/concord-core";
 import { InMemoryNegotiationService } from "./index.js";
 import { InMemoryReputationEvidenceService } from "@concord/reputation";
 

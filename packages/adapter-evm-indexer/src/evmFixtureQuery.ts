@@ -5,13 +5,13 @@
  * Designed for Phase D local development — no live EVM RPC required.
  */
 
-import type { ChainRef } from "@concord/core";
+import type { ChainRef } from "@vibly-ai/concord-core";
 import type {
   GovernanceIndexQueryPort,
   GovernanceSubjectRef,
   GovernanceProposalSummary,
-} from "@concord/governance";
-import type { ChainCheckpoint } from "@concord/chain-indexing";
+} from "@vibly-ai/concord-governance";
+import type { ChainCheckpoint } from "@vibly-ai/concord-chain-indexing";
 import { EVM_FIXTURE_PROPOSALS } from "./fixtures.js";
 
 export class EvmFixtureGovernanceQuery implements GovernanceIndexQueryPort {

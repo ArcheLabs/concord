@@ -1,4 +1,4 @@
-import type { NormalizedChainEvent } from "@concord/core";
+import type { NormalizedChainEvent } from "@vibly-ai/concord-core";
 
 // ─── Governance Projection Port ──────────────────────────────────────────────
 

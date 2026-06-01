@@ -2,7 +2,7 @@
 
 ## Decision
 
-Phase D-min keeps the shared surface thin and governance-scoped. The stable contracts remain in `@concord/governance` and the projection port remains in `@concord/coordination-view`; no new `@concord/surface-contracts`, `client-kit`, `coordinator-kit`, or `console-kit` package is introduced in this phase.
+Phase D-min keeps the shared surface thin and governance-scoped. The stable contracts remain in `@vibly-ai/concord-governance` and the projection port remains in `@concord/coordination-view`; no new `@concord/surface-contracts`, `client-kit`, `coordinator-kit`, or `console-kit` package is introduced in this phase.
 
 ## Stable Enough To Share
 
@@ -33,4 +33,4 @@ Phase E should revisit `@concord/surface-contracts` only after all of the follow
 3. Console and Client both consume backend descriptors and capabilities in a stable way.
 4. The duplicated code is stable enough to publish without pulling in app runtime dependencies.
 
-Until then, the practical kit boundary is the existing `@concord/governance` contract surface plus narrowly scoped adapter packages.
+Until then, the practical kit boundary is the existing `@vibly-ai/concord-governance` contract surface plus narrowly scoped adapter packages.

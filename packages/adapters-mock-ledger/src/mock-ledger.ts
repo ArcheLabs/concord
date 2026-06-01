@@ -1,5 +1,5 @@
-import { makeId, nowTimestamp } from "@concord/foundation";
-import type { ActorId, LedgerAccountId, ProjectId } from "@concord/foundation";
+import { makeId, nowTimestamp } from "@vibly-ai/concord-foundation";
+import type { ActorId, LedgerAccountId, ProjectId } from "@vibly-ai/concord-foundation";
 import type { LedgerAccount, LedgerEntry, LedgerEntryKind } from "./types.js";
 
 export class MockLedger {

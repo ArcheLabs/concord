@@ -1,4 +1,4 @@
-import type { EventStore } from "@concord/core";
+import type { EventStore } from "@vibly-ai/concord-core";
 import {
   hashCanonical,
   type EventEnvelope,
@@ -6,7 +6,7 @@ import {
   makeId,
   nowTimestamp,
   version,
-} from "@concord/foundation";
+} from "@vibly-ai/concord-foundation";
 import { exportTraceJson } from "./trace-exporter.js";
 import type {
   FinishTraceInput,

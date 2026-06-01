@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createEvent } from "@concord/foundation";
+import { createEvent } from "@vibly-ai/concord-foundation";
 import { DefaultTraceRecorder, DefaultTraceReplayer, DefaultTraceVerifier } from "./index.js";
 
 describe("trace verifier and replayer", () => {

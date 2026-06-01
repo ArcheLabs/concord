@@ -1,4 +1,4 @@
-import type { ActorId } from "@concord/foundation";
+import type { ActorId } from "@vibly-ai/concord-foundation";
 import type { CandidateActor, RandomSource } from "./types.js";
 
 export class DeterministicRandomSource implements RandomSource {

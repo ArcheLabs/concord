@@ -1,4 +1,4 @@
-import { makeId, nowTimestamp, version } from "@concord/foundation";
+import { makeId, nowTimestamp, version } from "@vibly-ai/concord-foundation";
 import { ConsistencyScorer } from "@concord/reputation";
 import type {
   ActorId,
@@ -12,8 +12,8 @@ import type {
   SettlementIntentId,
   SubmissionId,
   WorkOrderId,
-} from "@concord/foundation";
-import type { AssetAmount } from "@concord/core";
+} from "@vibly-ai/concord-foundation";
+import type { AssetAmount } from "@vibly-ai/concord-core";
 import type {
   FundingGateway,
   FundingReceipt,
@@ -193,10 +193,10 @@ export class ReviewerPayoffCalculator {
    * @returns Map from actorId to multiplier ∈ [0, 1]
    */
   computeMultipliers(
-    positions: ReadonlyArray<{ actorId: import("@concord/foundation").ActorId; score: number }>,
-  ): Map<import("@concord/foundation").ActorId, number> {
+    positions: ReadonlyArray<{ actorId: import("@vibly-ai/concord-foundation").ActorId; score: number }>,
+  ): Map<import("@vibly-ai/concord-foundation").ActorId, number> {
     const consistency = this.scorer.score(positions);
-    const result = new Map<import("@concord/foundation").ActorId, number>();
+    const result = new Map<import("@vibly-ai/concord-foundation").ActorId, number>();
     for (const [actorId, cs] of consistency) {
       result.set(actorId, cs.multiplier);
     }

@@ -1,4 +1,4 @@
-import { makeId, nowTimestamp } from "@concord/foundation";
+import { makeId, nowTimestamp } from "@vibly-ai/concord-foundation";
 import type {
   ActorId,
   ArtifactRef,
@@ -8,8 +8,8 @@ import type {
   RewardIntentId,
   SettlementIntentId,
   SlashIntentId,
-} from "@concord/foundation";
-import type { AssetAmount } from "@concord/core";
+} from "@vibly-ai/concord-foundation";
+import type { AssetAmount } from "@vibly-ai/concord-core";
 import type {
   SettlementIntent,
   SettlementReceipt,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { makeId } from "@concord/foundation";
+import { makeId } from "@vibly-ai/concord-foundation";
 import { DeterministicRandomSource, randomFromQualified, rotatingObserver, weightedRandomByReputation } from "./deterministic.js";
 import type { CandidateActor } from "./types.js";
 

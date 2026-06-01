@@ -1,4 +1,4 @@
-import { hashEvent, nowTimestamp, type EventEnvelope } from "@concord/foundation";
+import { hashEvent, nowTimestamp, type EventEnvelope } from "@vibly-ai/concord-foundation";
 import { hashBoundary } from "@concord/project";
 import { DefaultTraceReplayer } from "./trace-replayer.js";
 import type {

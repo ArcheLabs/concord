@@ -1,6 +1,6 @@
-import { makeId, nowTimestamp } from "@concord/foundation";
-import type { ProjectId, RewardIntentId, FundingReceiptId } from "@concord/foundation";
-import type { AssetAmount } from "@concord/core";
+import { makeId, nowTimestamp } from "@vibly-ai/concord-foundation";
+import type { ProjectId, RewardIntentId, FundingReceiptId } from "@vibly-ai/concord-foundation";
+import type { AssetAmount } from "@vibly-ai/concord-core";
 import type { FundingGateway, FundingReceipt } from "@concord/incentive";
 import { MockLedger } from "./mock-ledger.js";
 

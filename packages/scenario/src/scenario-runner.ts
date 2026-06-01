@@ -1,9 +1,9 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import type { LegacyActionIntent, ActionPolicy, Actor, ContextBundle, ContextReceipt, DecisionRecord, KnowledgeCandidate, NegotiationInstance, WorkOrder } from "@concord/core";
+import type { LegacyActionIntent, ActionPolicy, Actor, ContextBundle, ContextReceipt, DecisionRecord, KnowledgeCandidate, NegotiationInstance, WorkOrder } from "@vibly-ai/concord-core";
 import { MemoryEventStore, MemoryKnowledgeStore, MemoryProjectionStore, createStateView } from "@concord/adapters";
 import { createConcord } from "@concord/sdk";
-import { createEvent, hashCanonical, makeId, nowTimestamp, sha256, version, withDeterministicMode, type ActorId } from "@concord/foundation";
+import { createEvent, hashCanonical, makeId, nowTimestamp, sha256, version, withDeterministicMode, type ActorId } from "@vibly-ai/concord-foundation";
 import { DefaultInvariantRunner } from "@concord/invariants";
 import { DefaultTraceRecorder, DefaultTraceReplayer, DefaultTraceVerifier, createTracedEventStore, exportTraceJson } from "@concord/trace";
 import type { ProtocolTrace } from "@concord/trace";

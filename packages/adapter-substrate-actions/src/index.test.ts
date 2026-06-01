@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SubstrateGovernanceActionsAdapter } from "./index.js";
 
-describe("@concord/adapter-substrate-actions", () => {
+describe("@vibly-ai/concord-adapter-substrate-actions", () => {
   it("can be instantiated with defaults", () => {
     const adapter = new SubstrateGovernanceActionsAdapter();
     expect(adapter.kind).toBe("substrate-opengov");

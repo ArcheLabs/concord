@@ -9,7 +9,7 @@ import type {
   KnowledgeScope,
   KnowledgeStore,
   KnowledgeVersion,
-} from "@concord/core";
+} from "@vibly-ai/concord-core";
 import {
   type ActorId,
   type KnowledgeCandidateId,
@@ -17,7 +17,7 @@ import {
   makeId,
   nowTimestamp,
   sha256,
-} from "@concord/foundation";
+} from "@vibly-ai/concord-foundation";
 
 type DatabaseSync = {
   exec(sql: string): void;

@@ -1,4 +1,4 @@
-import { sha256 } from "@concord/foundation";
+import { sha256 } from "@vibly-ai/concord-foundation";
 import type { ExternalInput, InputDeduplicationResult } from "./types.js";
 import type { InputDeduper } from "./ports.js";
 

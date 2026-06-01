@@ -5,7 +5,7 @@
  * deployed on a local Anvil node (chainId 31337).
  */
 
-import type { GovernanceProposalSummary, GovernanceVoteReceipt } from "@concord/governance";
+import type { GovernanceProposalSummary, GovernanceVoteReceipt } from "@vibly-ai/concord-governance";
 
 const EVM_CHAIN = { namespace: "eip155", chainId: "31337" } as const;
 

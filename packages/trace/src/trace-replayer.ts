@@ -1,5 +1,5 @@
 import { MemoryEventStore, SQLiteEventStore, createStateView } from "@concord/state";
-import { assertEventHash, hashCanonical, type EventEnvelope } from "@concord/foundation";
+import { assertEventHash, hashCanonical, type EventEnvelope } from "@vibly-ai/concord-foundation";
 import type { ProtocolTrace, TraceReplayOptions, TraceReplayResult } from "./types.js";
 
 export class DefaultTraceReplayer {

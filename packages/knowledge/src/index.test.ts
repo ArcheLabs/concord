@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { makeId, nowTimestamp, version } from "@concord/foundation";
+import { makeId, nowTimestamp, version } from "@vibly-ai/concord-foundation";
 import { MemoryKnowledgeStore, SQLiteKnowledgeStore } from "./index.js";
-import type { ContextReceipt, KnowledgeCandidate, KnowledgeStore } from "@concord/core";
+import type { ContextReceipt, KnowledgeCandidate, KnowledgeStore } from "@vibly-ai/concord-core";
 
 describe("knowledge stores", () => {
   it("commits candidate knowledge into a new memory version", async () => {

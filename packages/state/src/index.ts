@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-import type { EventStore, ProjectionScope, ProjectionStore, StateView } from "@concord/core";
+import type { EventStore, ProjectionScope, ProjectionStore, StateView } from "@vibly-ai/concord-core";
 import {
   assertEventHash,
   createEvent,
@@ -11,7 +11,7 @@ import {
   sha256,
   version,
   type StateViewId,
-} from "@concord/foundation";
+} from "@vibly-ai/concord-foundation";
 
 type DatabaseSync = {
   exec(sql: string): void;

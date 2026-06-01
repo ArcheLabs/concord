@@ -1,4 +1,4 @@
-import type { EventEnvelope, ExternalInputId, ObservationQueueItemId } from "@concord/foundation";
+import type { EventEnvelope, ExternalInputId, ObservationQueueItemId } from "@vibly-ai/concord-foundation";
 import type {
   ExternalInput,
   InputClassification,

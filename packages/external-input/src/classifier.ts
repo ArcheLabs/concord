@@ -1,4 +1,4 @@
-import { makeId, nowTimestamp } from "@concord/foundation";
+import { makeId, nowTimestamp } from "@vibly-ai/concord-foundation";
 import type { ExternalInput, InputCategory, InputClassification } from "./types.js";
 import type { InputClassifier } from "./ports.js";
 

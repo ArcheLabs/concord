@@ -1,4 +1,4 @@
-import type { ChainRef } from "@concord/core";
+import type { ChainRef } from "@vibly-ai/concord-core";
 
 // ─── Backend Kind ─────────────────────────────────────────────────────────────
 

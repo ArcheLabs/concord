@@ -23,13 +23,13 @@ importers:
 
   ../vibly-client:
     dependencies:
-      '@concord/adapter-substrate-actions':
+      '@vibly-ai/concord-adapter-substrate-actions':
         specifier: workspace:*
         version: link:../concord/packages/adapter-substrate-actions
-      '@concord/adapter-substrate-indexer':
+      '@vibly-ai/concord-adapter-substrate-indexer':
         specifier: workspace:*
         version: link:../concord/packages/adapter-substrate-indexer
-      '@vibly/coordinator-http-contract':
+      '@vibly-ai/coordinator-http-contract':
         specifier: workspace:*
         version: link:../vibly-coordinator-http-contract
       better-sqlite3:
@@ -81,7 +81,7 @@ importers:
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@vibly/coordinator-http-contract':
+      '@vibly-ai/coordinator-http-contract':
         specifier: workspace:*
         version: link:../vibly-coordinator-http-contract
       date-fns:
@@ -157,22 +157,22 @@ importers:
       '@concord/adapter-evm-indexer':
         specifier: workspace:*
         version: link:../concord/packages/adapter-evm-indexer
-      '@concord/adapter-substrate-actions':
+      '@vibly-ai/concord-adapter-substrate-actions':
         specifier: workspace:*
         version: link:../concord/packages/adapter-substrate-actions
-      '@concord/adapter-substrate-indexer':
+      '@vibly-ai/concord-adapter-substrate-indexer':
         specifier: workspace:*
         version: link:../concord/packages/adapter-substrate-indexer
       '@concord/adapters':
         specifier: workspace:*
         version: link:../concord/packages/adapters
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../concord/packages/core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../concord/packages/foundation
-      '@concord/governance':
+      '@vibly-ai/concord-governance':
         specifier: workspace:*
         version: link:../concord/packages/governance
       '@concord/invariants':
@@ -322,10 +322,10 @@ importers:
 
   packages/adapter-evm-actions:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/governance':
+      '@vibly-ai/concord-governance':
         specifier: workspace:*
         version: link:../governance
     devDependencies:
@@ -338,13 +338,13 @@ importers:
 
   packages/adapter-evm-indexer:
     dependencies:
-      '@concord/chain-indexing':
+      '@vibly-ai/concord-chain-indexing':
         specifier: workspace:*
         version: link:../chain-indexing
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/governance':
+      '@vibly-ai/concord-governance':
         specifier: workspace:*
         version: link:../governance
     devDependencies:
@@ -357,13 +357,13 @@ importers:
 
   packages/adapter-substrate-actions:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
-      '@concord/governance':
+      '@vibly-ai/concord-governance':
         specifier: workspace:*
         version: link:../governance
       polkadot-api:
@@ -379,16 +379,16 @@ importers:
 
   packages/adapter-substrate-indexer:
     dependencies:
-      '@concord/chain-indexing':
+      '@vibly-ai/concord-chain-indexing':
         specifier: workspace:*
         version: link:../chain-indexing
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
-      '@concord/governance':
+      '@vibly-ai/concord-governance':
         specifier: workspace:*
         version: link:../governance
       graphql-request:
@@ -404,10 +404,10 @@ importers:
 
   packages/adapters:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
       '@concord/knowledge':
@@ -429,10 +429,10 @@ importers:
 
   packages/adapters-mock-ledger:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
       '@concord/incentive':
@@ -457,10 +457,10 @@ importers:
 
   packages/agent-directory:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
     devDependencies:
@@ -476,10 +476,10 @@ importers:
 
   packages/chain-indexing:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
     devDependencies:
@@ -498,13 +498,13 @@ importers:
       '@concord/agent-directory':
         specifier: workspace:*
         version: link:../agent-directory
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
-      '@concord/governance':
+      '@vibly-ai/concord-governance':
         specifier: workspace:*
         version: link:../governance
       '@concord/trust-registry':
@@ -523,7 +523,7 @@ importers:
 
   packages/core:
     dependencies:
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
       zod:
@@ -542,10 +542,10 @@ importers:
 
   packages/external-input:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
       zod:
@@ -576,13 +576,13 @@ importers:
 
   packages/governance:
     dependencies:
-      '@concord/chain-indexing':
+      '@vibly-ai/concord-chain-indexing':
         specifier: workspace:*
         version: link:../chain-indexing
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
     devDependencies:
@@ -598,10 +598,10 @@ importers:
 
   packages/incentive:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
       '@concord/reputation':
@@ -639,10 +639,10 @@ importers:
 
   packages/knowledge:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
     devDependencies:
@@ -658,10 +658,10 @@ importers:
 
   packages/negotiation:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
       '@concord/reputation':
@@ -680,10 +680,10 @@ importers:
 
   packages/policy:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
       zod:
@@ -705,10 +705,10 @@ importers:
 
   packages/project:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
     devDependencies:
@@ -724,10 +724,10 @@ importers:
 
   packages/reputation:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
       zod:
@@ -749,10 +749,10 @@ importers:
       '@concord/adapters':
         specifier: workspace:*
         version: link:../adapters
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
       '@concord/invariants':
@@ -795,16 +795,16 @@ importers:
       '@concord/coordination-view':
         specifier: workspace:*
         version: link:../coordination-view
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
       '@concord/external-input':
         specifier: workspace:*
         version: link:../external-input
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
-      '@concord/governance':
+      '@vibly-ai/concord-governance':
         specifier: workspace:*
         version: link:../governance
       '@concord/incentive':
@@ -853,10 +853,10 @@ importers:
 
   packages/selection:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
       '@concord/reputation':
@@ -878,10 +878,10 @@ importers:
 
   packages/settlement:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
       '@concord/incentive':
@@ -903,10 +903,10 @@ importers:
 
   packages/state:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
     devDependencies:
@@ -922,10 +922,10 @@ importers:
 
   packages/trace:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
       '@concord/project':
@@ -947,10 +947,10 @@ importers:
 
   packages/trust-registry:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
     devDependencies:
@@ -966,10 +966,10 @@ importers:
 
   packages/workflow:
     dependencies:
-      '@concord/core':
+      '@vibly-ai/concord-core':
         specifier: workspace:*
         version: link:../core
-      '@concord/foundation':
+      '@vibly-ai/concord-foundation':
         specifier: workspace:*
         version: link:../foundation
       '@concord/project':

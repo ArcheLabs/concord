@@ -13,7 +13,7 @@ import type {
   RoleAssignment,
   RuntimeExecutionResult,
   WorkOrder,
-} from "@concord/core";
+} from "@vibly-ai/concord-core";
 import {
   createEvent,
   type ActorId,
@@ -21,7 +21,7 @@ import {
   makeId,
   nowTimestamp,
   sha256,
-} from "@concord/foundation";
+} from "@vibly-ai/concord-foundation";
 
 export { MemoryKnowledgeStore, SQLiteKnowledgeStore } from "@concord/knowledge";
 export { createStateView, MemoryEventStore, MemoryProjectionStore, SQLiteEventStore, SQLiteProjectionStore } from "@concord/state";

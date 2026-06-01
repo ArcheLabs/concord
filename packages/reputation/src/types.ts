@@ -10,7 +10,7 @@ import type {
   SubmissionId,
   Timestamp,
   WorkOrderId,
-} from "@concord/foundation";
+} from "@vibly-ai/concord-foundation";
 
 export type ReputationEventKind =
   | "onAccepted"

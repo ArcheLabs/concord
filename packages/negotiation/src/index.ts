@@ -7,13 +7,13 @@ import type {
   NegotiationInstance,
   NegotiationPosition,
   VotingRule,
-} from "@concord/core";
-import { createEvent, makeId, nowTimestamp } from "@concord/foundation";
-import type { ProjectId } from "@concord/foundation";
+} from "@vibly-ai/concord-core";
+import { createEvent, makeId, nowTimestamp } from "@vibly-ai/concord-foundation";
+import type { ProjectId } from "@vibly-ai/concord-foundation";
 import { ConsistencyScorer } from "@concord/reputation";
 import type { ReputationEvidenceService } from "@concord/reputation";
 
-export type { Comment, DiscussionOutcome, DiscussionRound, DiscussionThread } from "@concord/core";
+export type { Comment, DiscussionOutcome, DiscussionRound, DiscussionThread } from "@vibly-ai/concord-core";
 
 export interface CreateNegotiationInput {
   action: LegacyActionIntent;

@@ -10,7 +10,7 @@ import {
   type Hash,
   type Version,
   type Timestamp,
-} from "@concord/foundation";
+} from "@vibly-ai/concord-foundation";
 import type {
   AgentId,
   BoundaryId,
@@ -24,8 +24,8 @@ import type {
   ProjectId,
   RuntimeBindingId,
   AddressBindingId,
-} from "@concord/foundation";
-import type { LegacyActionIntent, ActionPolicyRegistry, Actor, ConcordRole, ContextBundle, DecisionFlow, EventStore, PolicyDecision, StateView } from "@concord/core";
+} from "@vibly-ai/concord-foundation";
+import type { LegacyActionIntent, ActionPolicyRegistry, Actor, ConcordRole, ContextBundle, DecisionFlow, EventStore, PolicyDecision, StateView } from "@vibly-ai/concord-core";
 
 type DatabaseSync = {
   exec(sql: string): void;

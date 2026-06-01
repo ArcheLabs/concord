@@ -1,4 +1,4 @@
-import { makeId, nowTimestamp } from "@concord/foundation";
+import { makeId, nowTimestamp } from "@vibly-ai/concord-foundation";
 import type {
   ActorId,
   ArtifactRef,
@@ -6,7 +6,7 @@ import type {
   ObservationQueueItemId,
   ObjectiveId,
   ProjectId,
-} from "@concord/foundation";
+} from "@vibly-ai/concord-foundation";
 import type {
   ExternalInput,
   ExternalInputFilter,

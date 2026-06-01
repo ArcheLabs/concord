@@ -32,7 +32,7 @@ import type {
   Version,
   WorkClaimId,
   WorkOrderId,
-} from "@concord/foundation";
+} from "@vibly-ai/concord-foundation";
 
 export type ConcordRole = "observer" | "candidate_observer" | "delegate" | "member" | "reviewer" | "guardian";
 

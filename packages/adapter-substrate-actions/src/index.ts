@@ -1,9 +1,9 @@
 /**
- * Public entry-point for @concord/adapter-substrate-actions.
+ * Public entry-point for @vibly-ai/concord-adapter-substrate-actions.
  *
  * Usage:
  *
- *   import { SubstrateGovernanceActionsAdapter } from "@concord/adapter-substrate-actions";
+ *   import { SubstrateGovernanceActionsAdapter } from "@vibly-ai/concord-adapter-substrate-actions";
  *
  *   const adapter = new SubstrateGovernanceActionsAdapter({
  *     rpcUrl: "ws://127.0.0.1:9944",

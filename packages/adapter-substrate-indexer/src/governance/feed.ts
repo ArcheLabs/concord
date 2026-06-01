@@ -7,8 +7,8 @@
  * can be added later when SubQuery supports it.
  */
 
-import type { ChainRef, IndexCursor, NormalizedChainEvent } from "@concord/core";
-import type { GovernanceIndexFeedPort, GovernanceEventType } from "@concord/governance";
+import type { ChainRef, IndexCursor, NormalizedChainEvent } from "@vibly-ai/concord-core";
+import type { GovernanceIndexFeedPort, GovernanceEventType } from "@vibly-ai/concord-governance";
 import { SubQueryClient } from "../subquery/client.js";
 import { mapSubjectToProposalSummary } from "./mapper.js";
 

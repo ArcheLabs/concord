@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { GovernanceVoteActivityView } from "@concord/governance";
+import type { GovernanceVoteActivityView } from "@vibly-ai/concord-governance";
 import {
   EvmFixtureGovernanceIndexAdapter,
   EvmFixtureGovernanceFeed,

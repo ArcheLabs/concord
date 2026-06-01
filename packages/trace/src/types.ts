@@ -1,4 +1,4 @@
-import type { EventEnvelope, Hash, Timestamp, Version } from "@concord/foundation";
+import type { EventEnvelope, Hash, Timestamp, Version } from "@vibly-ai/concord-foundation";
 
 export interface ProtocolTrace {
   traceId: string;

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { InMemoryReputationEvidenceService, ConsistencyScorer } from "./service.js";
 import { checkReputationEvidenceInvariants } from "./invariants.js";
-import { makeId, nowTimestamp } from "@concord/foundation";
+import { makeId, nowTimestamp } from "@vibly-ai/concord-foundation";
 import type { ReputationEvidence } from "./types.js";
 
 const PROJECT_ID = makeId("ProjectId", "proj_rep");

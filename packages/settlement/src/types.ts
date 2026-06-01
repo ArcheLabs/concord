@@ -12,8 +12,8 @@ import type {
   SettlementReceiptId,
   SlashIntentId,
   Timestamp,
-} from "@concord/foundation";
-import type { AssetAmount } from "@concord/core";
+} from "@vibly-ai/concord-foundation";
+import type { AssetAmount } from "@vibly-ai/concord-core";
 
 export type RewardIntentStatus = "created" | "paused" | "pending_settlement" | "submitted" | "settled" | "failed" | "cancelled";
 

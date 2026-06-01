@@ -11,7 +11,7 @@ import type {
   ProjectId,
   ObjectiveId,
   Timestamp,
-} from "@concord/foundation";
+} from "@vibly-ai/concord-foundation";
 
 // ─── Source ─────────────────────────────────────────────────────────────────
 

@@ -5,7 +5,7 @@ import {
   SubQueryGovernanceQuery,
 } from "./index.js";
 
-describe("@concord/adapter-substrate-indexer", () => {
+describe("@vibly-ai/concord-adapter-substrate-indexer", () => {
   it("SubQueryGovernanceIndexAdapter can be instantiated", () => {
     const adapter = new SubQueryGovernanceIndexAdapter("http://localhost:3010/graphql");
     expect(typeof adapter.feed.subscribeGovernanceEvents).toBe("function");

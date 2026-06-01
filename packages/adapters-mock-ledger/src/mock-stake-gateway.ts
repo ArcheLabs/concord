@@ -1,8 +1,8 @@
-import type { ActorId, ProjectId } from "@concord/foundation";
-import type { AssetAmount } from "@concord/core";
+import type { ActorId, ProjectId } from "@vibly-ai/concord-foundation";
+import type { AssetAmount } from "@vibly-ai/concord-core";
 import type { StakeGateway } from "@concord/incentive";
 import { MockLedger } from "./mock-ledger.js";
-import { makeId } from "@concord/foundation";
+import { makeId } from "@vibly-ai/concord-foundation";
 
 export class MockStakeGateway implements StakeGateway {
   private stakes = new Map<string, { actorId: ActorId; projectId: ProjectId; asset: string; amount: string }>();

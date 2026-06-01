@@ -3,7 +3,7 @@ import type {
   TxReceipt,
   IndexCursor,
   NormalizedChainEvent,
-} from "@concord/core";
+} from "@vibly-ai/concord-core";
 import type {
   AgentDirectoryBackendKind,
   AgentRegistrationRef,

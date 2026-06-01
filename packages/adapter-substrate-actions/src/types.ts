@@ -35,7 +35,7 @@ export interface SubstrateActionsConfig {
 }
 
 export interface SubstrateTxSubmitInput {
-  chain: import("@concord/core").ChainRef;
+  chain: import("@vibly-ai/concord-core").ChainRef;
   actor: string;
   pallet: string;
   call: string;
@@ -45,4 +45,4 @@ export interface SubstrateTxSubmitInput {
 
 export type SubstrateTxSubmitter = (
   input: SubstrateTxSubmitInput,
-) => Promise<import("@concord/core").TxReceipt>;
+) => Promise<import("@vibly-ai/concord-core").TxReceipt>;

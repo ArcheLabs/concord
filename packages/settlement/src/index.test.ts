@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { InMemorySettlementService } from "./service.js";
 import { checkSettlementInvariants } from "./invariants.js";
-import { makeId, nowTimestamp } from "@concord/foundation";
+import { makeId, nowTimestamp } from "@vibly-ai/concord-foundation";
 import type { SettlementIntent } from "./types.js";
 
 const PROJECT_ID = makeId("ProjectId", "proj_set");

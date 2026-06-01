@@ -11,8 +11,8 @@ import type {
   Version,
   WorkClaimId,
   WorkOrderId,
-} from "@concord/foundation";
-import type { ConcordRole } from "@concord/core";
+} from "@vibly-ai/concord-foundation";
+import type { ConcordRole } from "@vibly-ai/concord-core";
 
 // ─── Selection Strategy ───────────────────────────────────────────────────────
 

@@ -13,7 +13,7 @@ export enum EvmProposalState {
   Executed = 7,
 }
 
-import type { GovernanceVoteStance } from "@concord/governance";
+import type { GovernanceVoteStance } from "@vibly-ai/concord-governance";
 
 /**
  * Map an EVM Governor proposal state integer to a Concord governance status string.

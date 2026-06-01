@@ -9,8 +9,8 @@ import type {
   ProjectId,
   Timestamp,
   Version,
-} from "@concord/foundation";
-import type { MechanismStatus } from "@concord/core";
+} from "@vibly-ai/concord-foundation";
+import type { MechanismStatus } from "@vibly-ai/concord-core";
 
 export type EligibilityRule =
   | { type: "skill_gte"; skill: string; min: number }

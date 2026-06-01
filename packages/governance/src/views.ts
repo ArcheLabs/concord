@@ -1,4 +1,4 @@
-import type { ChainRef } from "@concord/core";
+import type { ChainRef } from "@vibly-ai/concord-core";
 import type { GovernanceBackendKind } from "./types.js";
 import type { GovernanceEventType } from "./events.js";
 
@@ -198,5 +198,5 @@ export type GovernanceProjectionPatch =
   | { kind: "link"; id: string; value: GovernanceIntentChainLink };
 
 export interface GovernanceProjector<TEventType extends string = GovernanceEventType> {
-  project(event: import("@concord/core").NormalizedChainEvent<TEventType>): GovernanceProjectionPatch[];
+  project(event: import("@vibly-ai/concord-core").NormalizedChainEvent<TEventType>): GovernanceProjectionPatch[];
 }

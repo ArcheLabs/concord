@@ -31,7 +31,7 @@ import type {
   Timestamp,
   Version,
   VotingRoundId,
-} from "@concord/foundation";
+} from "@vibly-ai/concord-foundation";
 
 export const organizationStatuses = ["draft", "active", "paused", "archived"] as const;
 export type OrganizationStatus = (typeof organizationStatuses)[number];

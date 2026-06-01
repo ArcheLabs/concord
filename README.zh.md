@@ -2,7 +2,7 @@
 
 Concord 是 Vibly 协调网络的**协议内核** — 一个以 TypeScript 为主的 pnpm monorepo，负责实现全部链下协调逻辑，并通过清晰的**适配器边界**连接到链上系统（Substrate、EVM）。
 
-> **本仓库不包含 HTTP 服务器。** REST/SSE 网络网关由 [`vibly-coordinator`](../vibly-coordinator) 负责。依赖方向始终为 `vibly-* → concord`。
+> **本仓库不包含 HTTP 服务器。** REST/SSE 网络网关由 [`vibly-coordinator`](../vibly-coordinator) 负责。依赖方向始终为 `vibly-* → concord`。当前对外 npm 表面中，被选中的协议包统一发布为 `@vibly-ai/concord-*`。
 
 ## 快速开始
 
@@ -23,8 +23,8 @@ pnpm demo    # 运行 MVP 演示循环（SDK CLI，无 HTTP 服务器）
                         │
         ┌───────────────┼───────────────┐
         ▼               ▼               ▼
-   @concord/core   @concord/state  @concord/governance
-   @concord/foundation  @concord/negotiation  …
+   @vibly-ai/concord-core   @concord/state  @vibly-ai/concord-governance
+   @vibly-ai/concord-foundation  @concord/negotiation  …
         │               │               │
         ▼               ▼               ▼
   adapter-substrate-actions  adapter-substrate-indexer
@@ -37,8 +37,8 @@ pnpm demo    # 运行 MVP 演示循环（SDK CLI，无 HTTP 服务器）
 
 | 包 | 职责 |
 |---|---|
-| `@concord/foundation` | 带品牌 ID、时间戳、规范 JSON、SHA-256、审计事件信封 |
-| `@concord/core` | 领域类型、Schema、服务端口、运行时/网关接口 |
+| `@vibly-ai/concord-foundation` | 带品牌 ID、时间戳、规范 JSON、SHA-256、审计事件信封 |
+| `@vibly-ai/concord-core` | 领域类型、Schema、服务端口、运行时/网关接口 |
 | `@concord/state` | 内存和 SQLite 事件/投影存储 |
 | `@concord/knowledge` | 知识候选、提交、版本管理 |
 | `@concord/policy` | 动作策略注册表与路由 |
@@ -51,8 +51,8 @@ pnpm demo    # 运行 MVP 演示循环（SDK CLI，无 HTTP 服务器）
 
 | 包 | 职责 |
 |---|---|
-| `@concord/governance` | 治理端口接口（ActionsPort、IndexFeedPort、IndexQueryPort） |
-| `@concord/chain-indexing` | 通用链索引类型（ChainCheckpoint、NormalizedChainEvent、IndexCursor） |
+| `@vibly-ai/concord-governance` | 治理端口接口（ActionsPort、IndexFeedPort、IndexQueryPort） |
+| `@vibly-ai/concord-chain-indexing` | 通用链索引类型（ChainCheckpoint、NormalizedChainEvent、IndexCursor） |
 | `@concord/external-input` | 外部输入服务 |
 | `@concord/selection` | 选择服务、租约管理、故障转移 |
 | `@concord/reputation` | 信誉证据服务 |
@@ -70,8 +70,8 @@ pnpm demo    # 运行 MVP 演示循环（SDK CLI，无 HTTP 服务器）
 
 | 包 | 职责 |
 |---|---|
-| `@concord/adapter-substrate-actions` | `SubstrateGovernanceActionsAdapter` — 通过 polkadot-api (PAPI) 向 vibly-chain 提交治理交易 |
-| `@concord/adapter-substrate-indexer` | `SubQueryGovernanceIndexAdapter` — 查询 vibly-indexer SubQuery GraphQL，实现 GovernanceIndexFeedPort + GovernanceIndexQueryPort |
+| `@vibly-ai/concord-adapter-substrate-actions` | `SubstrateGovernanceActionsAdapter` — 通过 polkadot-api (PAPI) 向 vibly-chain 提交治理交易 |
+| `@vibly-ai/concord-adapter-substrate-indexer` | `SubQueryGovernanceIndexAdapter` — 查询 vibly-indexer SubQuery GraphQL，实现 GovernanceIndexFeedPort + GovernanceIndexQueryPort |
 | `@concord/adapters-mock-ledger` | Mock 质押账本适配器，用于不连接真实链的测试 |
 
 ## SDK 扩展点
@@ -143,5 +143,18 @@ pnpm concord trace replay traces/simple-loop.trace.json
 
 - `@concord/*` 包不得依赖 Fastify、Express 或任何 HTTP 框架。
 - `concord/apps/*` 不得暴露 HTTP 服务进程；仅允许 CLI/脚本演示。
-- `concord/*` 不得依赖任何 `vibly-*` 包；依赖箭头始终为 `vibly-* → concord`。
-- 本仓库内禁止使用产品命名空间标识符（`coordinator-api`、`vibly-*`、`coordinator-*`）。
+- `concord/*` 不得依赖任何 Vibly 产品包；依赖箭头始终为 `vibly-* → concord`。本仓库里唯一允许出现的 `@vibly-ai/*` 名称，是以 `@vibly-ai/concord-` 开头的对外发布包。
+- 本仓库内禁止使用产品命名空间标识符（`coordinator-api`、裸 `vibly-*`、`coordinator-*`），`@vibly-ai/concord-*` 发布前缀除外。
+
+## 发布 checklist
+
+当前对外发布的包集合为：
+
+- `@vibly-ai/concord-foundation`
+- `@vibly-ai/concord-core`
+- `@vibly-ai/concord-chain-indexing`
+- `@vibly-ai/concord-governance`
+- `@vibly-ai/concord-adapter-substrate-actions`
+- `@vibly-ai/concord-adapter-substrate-indexer`
+
+发布前请执行 [docs/npm-publish-checklist.md](docs/npm-publish-checklist.md) 中的检查项。

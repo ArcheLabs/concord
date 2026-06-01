@@ -1,4 +1,4 @@
-import type { EventEnvelope, ReputationEvidenceId } from "@concord/foundation";
+import type { EventEnvelope, ReputationEvidenceId } from "@vibly-ai/concord-foundation";
 import type { ReputationEvidence, ReputationScore } from "./types.js";
 
 export type ReputationEvidenceRecordedEvent = EventEnvelope<

@@ -2,7 +2,7 @@
 
 Concord is the protocol kernel for the Vibly coordination network — a TypeScript-first pnpm monorepo that implements all off-chain coordination logic and connects to on-chain systems (Substrate, EVM) through clean **adapter boundaries**.
 
-> **No HTTP server shipped here.** The REST/SSE network gateway is owned by [`vibly-coordinator`](../vibly-coordinator). The dependency direction is always `vibly-* → concord`.
+> **No HTTP server shipped here.** The REST/SSE network gateway is owned by [`vibly-coordinator`](../vibly-coordinator). The dependency direction is always `vibly-* → concord`. For the current public npm surface, selected protocol packages publish as `@vibly-ai/concord-*`.
 
 ## Quick start
 
@@ -23,8 +23,8 @@ pnpm demo    # run the MVP demo loop (SDK CLI, no HTTP server)
                         │
         ┌───────────────┼───────────────┐
         ▼               ▼               ▼
-   @concord/core   @concord/state  @concord/governance
-   @concord/foundation  @concord/negotiation  …
+   @vibly-ai/concord-core   @concord/state  @vibly-ai/concord-governance
+   @vibly-ai/concord-foundation  @concord/negotiation  …
         │               │               │
         ▼               ▼               ▼
   adapter-substrate-actions  adapter-substrate-indexer
@@ -37,8 +37,8 @@ pnpm demo    # run the MVP demo loop (SDK CLI, no HTTP server)
 
 | Package | Responsibility |
 |---|---|
-| `@concord/foundation` | Branded IDs, timestamps, canonical JSON, SHA-256, audit event envelope |
-| `@concord/core` | Domain types, schemas, service ports, runtime/gateway interfaces |
+| `@vibly-ai/concord-foundation` | Branded IDs, timestamps, canonical JSON, SHA-256, audit event envelope |
+| `@vibly-ai/concord-core` | Domain types, schemas, service ports, runtime/gateway interfaces |
 | `@concord/state` | In-memory and SQLite event / projection store |
 | `@concord/knowledge` | Knowledge candidates, commits, version management |
 | `@concord/policy` | Action policy registry and routing |
@@ -51,8 +51,8 @@ pnpm demo    # run the MVP demo loop (SDK CLI, no HTTP server)
 
 | Package | Responsibility |
 |---|---|
-| `@concord/governance` | Governance port interfaces (ActionsPort, IndexFeedPort, IndexQueryPort) |
-| `@concord/chain-indexing` | Generic chain-indexing types (ChainCheckpoint, NormalizedChainEvent, IndexCursor) |
+| `@vibly-ai/concord-governance` | Governance port interfaces (ActionsPort, IndexFeedPort, IndexQueryPort) |
+| `@vibly-ai/concord-chain-indexing` | Generic chain-indexing types (ChainCheckpoint, NormalizedChainEvent, IndexCursor) |
 | `@concord/external-input` | External input service |
 | `@concord/selection` | Selection service, lease management, failover |
 | `@concord/reputation` | Reputation evidence service |
@@ -70,8 +70,8 @@ pnpm demo    # run the MVP demo loop (SDK CLI, no HTTP server)
 
 | Package | Responsibility |
 |---|---|
-| `@concord/adapter-substrate-actions` | `SubstrateGovernanceActionsAdapter` — submits governance transactions to vibly-chain via polkadot-api (PAPI) |
-| `@concord/adapter-substrate-indexer` | `SubQueryGovernanceIndexAdapter` — queries vibly-indexer SubQuery GraphQL, implements GovernanceIndexFeedPort + GovernanceIndexQueryPort |
+| `@vibly-ai/concord-adapter-substrate-actions` | `SubstrateGovernanceActionsAdapter` — submits governance transactions to vibly-chain via polkadot-api (PAPI) |
+| `@vibly-ai/concord-adapter-substrate-indexer` | `SubQueryGovernanceIndexAdapter` — queries vibly-indexer SubQuery GraphQL, implements GovernanceIndexFeedPort + GovernanceIndexQueryPort |
 | `@concord/adapters-mock-ledger` | Mock stake-ledger adapter for testing without a live chain |
 
 ## SDK extension points
@@ -143,5 +143,18 @@ The following concerns are expressed through port interfaces and mock adapters, 
 
 - `@concord/*` packages must not depend on Fastify, Express, or any HTTP framework.
 - `concord/apps/*` must not expose HTTP server processes; only CLI / script demos are permitted.
-- `concord/*` must not depend on any `vibly-*` package; the dependency arrow is always `vibly-* → concord`.
-- Product-namespace identifiers (`coordinator-api`, `vibly-*`, `coordinator-*`) are forbidden inside this repository.
+- `concord/*` must not depend on any Vibly product package; the dependency arrow is always `vibly-* → concord`. The only allowed `@vibly-ai/*` names in this repo are published concord packages that start with `@vibly-ai/concord-`.
+- Product-namespace identifiers (`coordinator-api`, bare `vibly-*`, `coordinator-*`) are forbidden inside this repository, except for the published npm package prefix `@vibly-ai/concord-*`.
+
+## Publish checklist
+
+The current external package set is:
+
+- `@vibly-ai/concord-foundation`
+- `@vibly-ai/concord-core`
+- `@vibly-ai/concord-chain-indexing`
+- `@vibly-ai/concord-governance`
+- `@vibly-ai/concord-adapter-substrate-actions`
+- `@vibly-ai/concord-adapter-substrate-indexer`
+
+Before publishing, run the checklist in [docs/npm-publish-checklist.md](docs/npm-publish-checklist.md).

@@ -1,9 +1,9 @@
 /**
- * Public entry-point for @concord/adapter-substrate-indexer.
+ * Public entry-point for @vibly-ai/concord-adapter-substrate-indexer.
  *
  * Usage:
  *
- *   import { SubQueryGovernanceIndexAdapter } from "@concord/adapter-substrate-indexer";
+ *   import { SubQueryGovernanceIndexAdapter } from "@vibly-ai/concord-adapter-substrate-indexer";
  *
  *   const adapter = new SubQueryGovernanceIndexAdapter("http://localhost:3010/graphql");
  *   concordConfig.governanceIndexFeed  = adapter.feed;
@@ -13,7 +13,7 @@
 import { SubQueryClient } from "./subquery/client.js";
 import { SubQueryGovernanceFeed } from "./governance/feed.js";
 import { SubQueryGovernanceQuery } from "./governance/query.js";
-import type { GovernanceIndexFeedPort, GovernanceIndexQueryPort } from "@concord/governance";
+import type { GovernanceIndexFeedPort, GovernanceIndexQueryPort } from "@vibly-ai/concord-governance";
 
 export { SubQueryClient } from "./subquery/client.js";
 export { SubQueryGovernanceFeed } from "./governance/feed.js";

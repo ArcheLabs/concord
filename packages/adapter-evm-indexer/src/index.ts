@@ -10,7 +10,7 @@
  *   concordConfig.governanceIndexQuery = adapter.query;
  */
 
-import type { GovernanceIndexFeedPort, GovernanceIndexQueryPort } from "@concord/governance";
+import type { GovernanceIndexFeedPort, GovernanceIndexQueryPort } from "@vibly-ai/concord-governance";
 import { EvmFixtureGovernanceFeed } from "./evmFixtureFeed.js";
 import { EvmFixtureGovernanceQuery } from "./evmFixtureQuery.js";
 

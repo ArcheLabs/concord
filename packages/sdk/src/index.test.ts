@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ActionIntentSchema, CoordinationMechanismSchema, DeterministicRandomSource, createConcord, createSQLiteConcord } from "./index.js";
 import type { ConcordConfig } from "./index.js";
-import type { GovernanceActionsPort } from "@concord/governance";
+import type { GovernanceActionsPort } from "@vibly-ai/concord-governance";
 import type { AgentDirectoryActionsPort } from "@concord/agent-directory";
 import type { TrustRegistryActionsPort } from "@concord/trust-registry";
 import type { GovernanceProjectionPort } from "@concord/coordination-view";

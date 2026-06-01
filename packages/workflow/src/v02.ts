@@ -7,7 +7,7 @@ import type {
   SubmissionId,
   TaskId,
   Timestamp,
-} from "@concord/foundation";
+} from "@vibly-ai/concord-foundation";
 import type {
   Artifact,
   AssignmentOffer,
@@ -18,7 +18,7 @@ import type {
   Task,
   TaskPlan,
   VotingRound,
-} from "@concord/core";
+} from "@vibly-ai/concord-core";
 
 export type {
   Artifact,

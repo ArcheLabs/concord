@@ -12,8 +12,8 @@ import type {
   Timestamp,
   Version,
   WorkOrderId,
-} from "@concord/foundation";
-import type { AssetAmount } from "@concord/core";
+} from "@vibly-ai/concord-foundation";
+import type { AssetAmount } from "@vibly-ai/concord-core";
 
 // ─── Reward Kind ──────────────────────────────────────────────────────────────
 

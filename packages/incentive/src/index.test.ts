@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { InMemoryIncentiveService } from "./service.js";
 import { checkIncentiveInvariants } from "./invariants.js";
-import { makeId, nowTimestamp, version } from "@concord/foundation";
+import { makeId, nowTimestamp, version } from "@vibly-ai/concord-foundation";
 import type { RewardIntent, RewardPolicy } from "./types.js";
 
 const PROJECT_ID = makeId("ProjectId", "proj_inc");

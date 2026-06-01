@@ -11,8 +11,8 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@concord/core": "workspace:*",
-    "@concord/foundation": "workspace:*",
+    "@vibly-ai/concord-core": "workspace:*",
+    "@vibly-ai/concord-foundation": "workspace:*",
     "zod": "^3.24.3"
   },
   "devDependencies": {

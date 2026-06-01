@@ -23,8 +23,8 @@ import type {
   GovernanceSubjectRef,
   GovernanceVoteStance,
   GovernanceProposalSummary,
-} from "@concord/governance";
-import type { ChainRef, TxReceipt } from "@concord/core";
+} from "@vibly-ai/concord-governance";
+import type { ChainRef, TxReceipt } from "@vibly-ai/concord-core";
 import type { SubstrateActionsConfig, SubstrateTxSubmitter } from "./types.js";
 
 // ─── PAPI lazy import ─────────────────────────────────────────────────────────

@@ -13,7 +13,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createConcord } from "./index.js";
 import { MockLedger, MockFundingGateway as MockLedgerFundingGateway } from "@concord/adapters-mock-ledger";
-import { makeId, version } from "@concord/foundation";
+import { makeId, version } from "@vibly-ai/concord-foundation";
 
 describe("E2E: M10 → M11 → M13", () => {
   let sdk: ReturnType<typeof createConcord>;

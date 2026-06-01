@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { InMemoryExternalInputService } from "./service.js";
 import { checkExternalInputInvariants } from "./invariants.js";
 import type { ExternalInput, ExternalInputSource } from "./types.js";
-import { makeId, nowTimestamp } from "@concord/foundation";
+import { makeId, nowTimestamp } from "@vibly-ai/concord-foundation";
 
 const PROJECT_ID = makeId("ProjectId", "proj_test");
 

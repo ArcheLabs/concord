@@ -20,7 +20,7 @@ import type {
   StateView,
   Submission,
   WorkOrder,
-} from "@concord/core";
+} from "@vibly-ai/concord-core";
 import {
   AgentService,
   BoundaryAwareActionPolicyRegistry,
@@ -47,7 +47,7 @@ import {
 import { InMemoryNegotiationService } from "@concord/negotiation";
 import { InMemoryActionPolicyRegistry } from "@concord/policy";
 import { InMemoryReviewService, InMemoryWorkService, RuntimeService } from "@concord/workflow";
-import { createEvent, type ActorId, type GoalId, makeId, nowTimestamp, sha256, version } from "@concord/foundation";
+import { createEvent, type ActorId, type GoalId, makeId, nowTimestamp, sha256, version } from "@vibly-ai/concord-foundation";
 import type { ExternalInputService } from "@concord/external-input";
 import { InMemoryExternalInputService } from "@concord/external-input";
 import type { SelectionService, LeaseManager, FailoverService } from "@concord/selection";
@@ -68,7 +68,7 @@ import type {
   GovernanceIndexFeedPort,
   GovernanceIndexQueryPort,
   ServiceChainActionsPort,
-} from "@concord/governance";
+} from "@vibly-ai/concord-governance";
 import type {
   AgentDirectoryActionsPort,
   AgentDirectoryQueryPort,
@@ -631,7 +631,7 @@ export type {
   Task,
   TaskPlan,
   VotingRound,
-} from "@concord/core";
+} from "@vibly-ai/concord-core";
 export {
   ActionIntentSchema,
   DomainEventSchema,
@@ -649,7 +649,7 @@ export {
   artifactStatuses,
   rewardIntentStatuses,
   mechanismStatuses,
-} from "@concord/core";
+} from "@vibly-ai/concord-core";
 export type {
   ObjectRef,
   ObjectRefKind,
@@ -674,7 +674,7 @@ export type {
   ReviewId,
   SettlementBatchId,
   StakePositionId,
-} from "@concord/foundation";
+} from "@vibly-ai/concord-foundation";
 export type {
   AssignmentRule,
   CoordinationMechanism,

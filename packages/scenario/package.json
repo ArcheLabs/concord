@@ -12,8 +12,8 @@
   },
   "dependencies": {
     "@concord/adapters": "workspace:*",
-    "@concord/core": "workspace:*",
-    "@concord/foundation": "workspace:*",
+    "@vibly-ai/concord-core": "workspace:*",
+    "@vibly-ai/concord-foundation": "workspace:*",
     "@concord/invariants": "workspace:*",
     "@concord/project": "workspace:*",
     "@concord/sdk": "workspace:*",

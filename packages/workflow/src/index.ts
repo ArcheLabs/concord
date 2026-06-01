@@ -12,8 +12,8 @@ import type {
   Submission as LegacySubmission,
   WorkClaim,
   WorkOrder,
-} from "@concord/core";
-import { createEvent, type ActorId, type WorkOrderId, makeId, nowTimestamp } from "@concord/foundation";
+} from "@vibly-ai/concord-core";
+import { createEvent, type ActorId, type WorkOrderId, makeId, nowTimestamp } from "@vibly-ai/concord-foundation";
 import type { ProjectStore, RuntimeBinding } from "@concord/project";
 
 export type * from "./v02.js";

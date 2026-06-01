@@ -1,5 +1,5 @@
-import { makeId, nowTimestamp } from "@concord/foundation";
-import type { ActorId, ArtifactRef, ObjectiveId, ProjectId, ReviewRecordId, SubmissionId, WorkOrderId } from "@concord/foundation";
+import { makeId, nowTimestamp } from "@vibly-ai/concord-foundation";
+import type { ActorId, ArtifactRef, ObjectiveId, ProjectId, ReviewRecordId, SubmissionId, WorkOrderId } from "@vibly-ai/concord-foundation";
 import type {
   ConsistencyScore,
   ReputationEvidence,

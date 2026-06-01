@@ -7,8 +7,8 @@
  * Phase E+: Replace with a real eth_getLogs / WebSocket subscription.
  */
 
-import type { ChainRef, IndexCursor, NormalizedChainEvent } from "@concord/core";
-import type { GovernanceIndexFeedPort, GovernanceEventType } from "@concord/governance";
+import type { ChainRef, IndexCursor, NormalizedChainEvent } from "@vibly-ai/concord-core";
+import type { GovernanceIndexFeedPort, GovernanceEventType } from "@vibly-ai/concord-governance";
 import { EVM_FIXTURE_PROPOSALS, EVM_FIXTURE_VOTES, toEvmFixtureVoteReceipt } from "./fixtures.js";
 
 export class EvmFixtureGovernanceFeed implements GovernanceIndexFeedPort {

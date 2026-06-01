@@ -1,7 +1,7 @@
 import { randomInt } from "node:crypto";
-import { makeId, nowTimestamp, version } from "@concord/foundation";
-import type { ActorId, LeaseId, ObjectiveId, ProjectId, RoleAssignmentId, SelectionPolicyId } from "@concord/foundation";
-import type { ConcordRole } from "@concord/core";
+import { makeId, nowTimestamp, version } from "@vibly-ai/concord-foundation";
+import type { ActorId, LeaseId, ObjectiveId, ProjectId, RoleAssignmentId, SelectionPolicyId } from "@vibly-ai/concord-foundation";
+import type { ConcordRole } from "@vibly-ai/concord-core";
 import type {
   CandidateActor,
   FailoverKind,

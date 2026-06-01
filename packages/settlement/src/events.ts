@@ -1,4 +1,4 @@
-import type { EventEnvelope, SettlementIntentId, SlashIntentId } from "@concord/foundation";
+import type { EventEnvelope, SettlementIntentId, SlashIntentId } from "@vibly-ai/concord-foundation";
 import type { SettlementIntent, SettlementReceipt, SlashIntent } from "./types.js";
 
 export type SettlementIntentCreatedEvent = EventEnvelope<"SettlementIntentCreated", { intent: SettlementIntent }>;

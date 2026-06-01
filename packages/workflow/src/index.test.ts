@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { makeId, nowTimestamp, version } from "@concord/foundation";
-import type { ContextBundle, ContextReceipt, ExecutionReceipt, WorkOrder } from "@concord/core";
+import { makeId, nowTimestamp, version } from "@vibly-ai/concord-foundation";
+import type { ContextBundle, ContextReceipt, ExecutionReceipt, WorkOrder } from "@vibly-ai/concord-core";
 import { InMemoryReviewService, InMemoryWorkService, RuntimeService } from "./index.js";
 
 describe("workflow services", () => {

@@ -1,4 +1,4 @@
-import type { ChainRef, IndexCursor, NormalizedChainEvent } from "@concord/core";
+import type { ChainRef, IndexCursor, NormalizedChainEvent } from "@vibly-ai/concord-core";
 
 // ─── Checkpoint ──────────────────────────────────────────────────────────────
 

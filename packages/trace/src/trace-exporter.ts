@@ -1,4 +1,4 @@
-import { canonicalize } from "@concord/foundation";
+import { canonicalize } from "@vibly-ai/concord-foundation";
 import type { ProtocolTrace } from "./types.js";
 
 export function exportTraceJson(trace: ProtocolTrace): string {

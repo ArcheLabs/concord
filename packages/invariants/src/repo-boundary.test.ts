@@ -6,6 +6,7 @@ const repoRoot = new URL("../../..", import.meta.url).pathname;
 const httpFrameworks = new Set(["fastify", "express", "koa", "hapi"]);
 const forbiddenDependencyPrefixes = ["@fastify/", "@nestjs/", "vibly-", "@vibly/"];
 const forbiddenProductNames = ["coordinator-api", "vibly-"];
+const allowedPublishedConcordPrefix = "@vibly-ai/concord-";
 
 interface PackageJson {
   name?: string;
@@ -15,7 +16,7 @@ interface PackageJson {
 }
 
 describe("repo boundary invariants", () => {
-  it("keeps @concord packages free of HTTP framework dependencies", () => {
+  it("keeps concord packages free of HTTP framework dependencies", () => {
     const offenders = packageJsonFiles(join(repoRoot, "packages")).flatMap((file) => {
       const json = readPackageJson(file);
       const deps = { ...json.dependencies, ...json.devDependencies, ...json.peerDependencies };
@@ -32,7 +33,14 @@ describe("repo boundary invariants", () => {
       if (file.includes("/node_modules/")) return [];
       const json = readPackageJson(file);
       const deps = { ...json.dependencies, ...json.devDependencies, ...json.peerDependencies };
-      return Object.keys(deps).filter((dep) => dep.startsWith("vibly-") || dep.startsWith("@vibly/")).map((dep) => `${relative(repoRoot, file)}:${dep}`);
+      return Object.keys(deps)
+        .filter(
+          (dep) =>
+            dep.startsWith("vibly-") ||
+            dep.startsWith("@vibly/") ||
+            (dep.startsWith("@vibly-ai/") && !dep.startsWith(allowedPublishedConcordPrefix)),
+        )
+        .map((dep) => `${relative(repoRoot, file)}:${dep}`);
     });
 
     expect(offenders).toEqual([]);
@@ -42,7 +50,7 @@ describe("repo boundary invariants", () => {
     const offenders = sourceFiles(join(repoRoot, "apps"))
       .filter((file) => {
         const text = readFileSync(file, "utf8");
-        return /\b(server|app|fastify)\.listen\s*\(/.test(text);
+        return /(server|app|fastify)\.listen\s*\(/.test(text);
       })
       .map((file) => relative(repoRoot, file));
 
@@ -55,9 +63,13 @@ describe("repo boundary invariants", () => {
       const json = readPackageJson(file);
       const name = String(json.name ?? "");
       const dir = relative(repoRoot, file).split("/").slice(0, -1).join("/");
-      return forbiddenProductNames.some((forbidden) => name.includes(forbidden) || dir.includes(forbidden))
-        ? [`${relative(repoRoot, file)}:${name}`]
-        : [];
+      const hasForbiddenName =
+        forbiddenProductNames.some((forbidden) => name.includes(forbidden)) && !name.startsWith(allowedPublishedConcordPrefix);
+      const hasForbiddenDir = forbiddenProductNames.some((forbidden) => dir.includes(forbidden));
+      const hasForbiddenScopedName =
+        name.startsWith("@vibly-ai/") && !name.startsWith(allowedPublishedConcordPrefix);
+      const hasForbiddenProductName = hasForbiddenName || hasForbiddenDir || hasForbiddenScopedName;
+      return hasForbiddenProductName ? [`${relative(repoRoot, file)}:${name}`] : [];
     });
 
     expect(offenders).toEqual([]);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createEvent, makeId } from "@concord/foundation";
+import { createEvent, makeId } from "@vibly-ai/concord-foundation";
 import { createStateView, MemoryEventStore, MemoryProjectionStore, SQLiteEventStore, SQLiteProjectionStore } from "./index.js";
 
 describe("state stores", () => {

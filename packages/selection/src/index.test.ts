@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { InMemoryLeaseManager, InMemorySelectionService, InMemoryFailoverService } from "./service.js";
 import { checkLeaseRenewalInvariant, checkLeaseDurationInvariant } from "./invariants.js";
-import { makeId, nowTimestamp, version } from "@concord/foundation";
+import { makeId, nowTimestamp, version } from "@vibly-ai/concord-foundation";
 import type { SelectionPolicy, CandidateActor, RandomSource } from "./types.js";
 
 const PROJECT_ID = makeId("ProjectId", "proj_sel");

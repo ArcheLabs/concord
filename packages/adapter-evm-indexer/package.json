@@ -12,9 +12,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@concord/core": "workspace:*",
-    "@concord/chain-indexing": "workspace:*",
-    "@concord/governance": "workspace:*"
+    "@vibly-ai/concord-core": "workspace:*",
+    "@vibly-ai/concord-chain-indexing": "workspace:*",
+    "@vibly-ai/concord-governance": "workspace:*"
   },
   "devDependencies": {
     "typescript": "~5.4.0",
