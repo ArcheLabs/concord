@@ -57,7 +57,7 @@ export type ProductStatus = "draft" | "active" | "retired" | "archived";
 export type ObjectiveKind = "long_term" | "milestone" | "phase" | "task_cluster" | "experiment";
 export type ObjectiveStatus = "draft" | "active" | "succeeded" | "failed" | "superseded" | "abandoned";
 export type RiskLevel = "low" | "medium" | "high" | "critical";
-export type PrincipalKind = "human" | "organization" | "service" | "multisig" | "unknown";
+export type PrincipalKind = "human" | "organization" | "service" | "multisig" | "unknown" | "agent";
 export type PrincipalStatus = "pending" | "active" | "suspended" | "revoked";
 export type AgentStatus = "pending" | "active" | "paused" | "suspended" | "retired";
 export type RuntimeKind = "script" | "mock" | "local_llm" | "browser_llm" | "openclaw" | "a2a" | "mcp" | "hosted_agent" | "human_assisted";
@@ -759,8 +759,8 @@ export class PrincipalService {
 
   async registerPrincipal(input: RegisterPrincipalInput): Promise<Principal> {
     assertRequired(input.displayName, "Principal displayName");
-    if (!input.identityBindings?.length && !input.addressBindings?.length && input.kind !== "unknown" && input.kind !== "service") {
-      throw new ProjectError("PRINCIPAL_NOT_ACTIVE", "Principal requires identity/address binding unless kind is unknown or service");
+    if (!input.identityBindings?.length && !input.addressBindings?.length && input.kind !== "unknown" && input.kind !== "service" && input.kind !== "agent") {
+      throw new ProjectError("PRINCIPAL_NOT_ACTIVE", "Principal requires identity/address binding unless kind is unknown, service, or agent");
     }
     const now = nowTimestamp();
     const principal: Principal = {
