@@ -67,6 +67,7 @@ export type MembershipStatus = "invited" | "active" | "suspended" | "left" | "re
 export interface ProjectProtocolConfig {
   version: Version;
   traceRequired: boolean;
+  observationCycleInterval: number;
 }
 
 export interface Organization {
@@ -996,7 +997,11 @@ export class ProjectService {
       status: "draft",
       sponsorPrincipalId: input.sponsorPrincipalId,
       boundaryId: boundary.id,
-      protocol: { version: input.protocol?.version ?? version("1.0.0"), traceRequired: input.protocol?.traceRequired ?? true },
+      protocol: {
+        version: input.protocol?.version ?? version("1.0.0"),
+        traceRequired: input.protocol?.traceRequired ?? true,
+        observationCycleInterval: normalizeObservationCycleInterval(input.protocol?.observationCycleInterval),
+      },
       createdAt: now,
       updatedAt: now,
       ...(input.description ? { description: input.description } : {}),
@@ -1757,6 +1762,7 @@ export class SQLiteProjectStore implements ProjectStore {
 }
 
 export type ProjectErrorCode =
+  | "VALIDATION_ERROR"
   | "PROJECT_NOT_FOUND"
   | "PROJECT_SLUG_ALREADY_EXISTS"
   | "PROJECT_NOT_ACTIVE"
@@ -1799,6 +1805,14 @@ export function assertValidProjectSlug(slug: string): void {
 
 export function assertRequired(value: string | undefined, label: string): void {
   if (!value?.trim()) throw new ProjectError("PROJECT_NOT_FOUND", `${label} is required`);
+}
+
+export function normalizeObservationCycleInterval(value: number | undefined): number {
+  if (value === undefined) return 1;
+  if (!Number.isInteger(value) || value < 1) {
+    throw new ProjectError("VALIDATION_ERROR", "Observation cycle interval must be an integer greater than or equal to 1");
+  }
+  return value;
 }
 
 export function validateObjectiveShape(input: Pick<Objective, "title" | "description" | "successCriteria">): void {
